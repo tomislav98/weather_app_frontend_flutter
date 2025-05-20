@@ -5,7 +5,6 @@ import 'config.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
-  print('API Key: ${Config.apiKey}');
   runApp(const MyApp());
 }
 

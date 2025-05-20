@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/weather.dart';
 import '../services/weather_api.dart';
 import 'package:lottie/lottie.dart';
+import 'package:geolocator/geolocator.dart';
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -94,13 +95,30 @@ class _HomePageViewState extends State<HomePageView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            weather.locationName,
-            style: const TextStyle(
-              fontFamily: 'Montserrat',
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                weather.locationName,
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 8), // spacing
+              GestureDetector(
+                onTap: () {
+                  // Your function to activate location, e.g. getCurrentCity();
+                  print('Location icon clicked!');
+                },
+                child: const Icon(
+                  Icons.my_location, // or Icons.location_on
+                  size: 24,
+                  color: Colors.blueAccent,
+                ),
+              ),
+            ],
           ),
           Text(
             "${weather.currentTemperature}°C",
