@@ -1,6 +1,7 @@
 import 'dart:async' show Timer;
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/search_api.dart';
 
 class SearchPageView extends StatefulWidget {
@@ -42,7 +43,7 @@ class _SearchPageViewState extends State<SearchPageView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Search')),
+      appBar: AppBar(title: const Text('Add the City')),
       body: RefreshIndicator(
         onRefresh: () async {},
         child: Column(
@@ -85,9 +86,22 @@ class _SearchPageViewState extends State<SearchPageView> {
                   final city = _searchResults[index];
                   return ListTile(
                     title: Text('${city['name']}, ${city['country']}'),
-                    onTap: () {
-                      // Do something with selected city
-                      print("Selected city: ${city['name']}");
+                    onTap: () async {
+                      // select the main city
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('selectedCity', city['name']);
+
+                      // set the list
+                      List<String> savedCities =
+                          prefs.getStringList('savedCities') ?? [];
+                      if (!savedCities.contains(city['name'])) {
+                        savedCities.add(city['name']);
+                        await prefs.setStringList('savedCities', savedCities);
+                      }
+                      setState(() {
+                        _controller.text = '';
+                        _searchResults.clear();
+                      });
                     },
                   );
                 },

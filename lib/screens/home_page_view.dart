@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart' show Geolocator, LocationPermission;
+import 'package:weather_app/screens/city_selection_view.dart';
 import '../models/weather.dart';
 import '../services/weather_api.dart';
 import '../services/location_api.dart';
 import 'package:lottie/lottie.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'search_page_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -19,6 +18,8 @@ class _HomePageViewState extends State<HomePageView> {
   late Future<Weather> futureWeather;
   Future<Placemark>? futureCurrentLocation;
   late Future<void> locationServiceDialog;
+  String _selectedCity = 'Vatican';
+
   int _selectedIndex = 0;
 
   Future<void> _dialogBuilder(BuildContext context) {
@@ -62,11 +63,22 @@ class _HomePageViewState extends State<HomePageView> {
   void initState() {
     super.initState();
     initialize();
+    _loadSelectedCityAndFetchWeatherData();
   }
 
   Future<void> initialize() async {
-    futureWeather = fetchWeatherData("Vatican");
+    futureWeather = fetchWeatherData(_selectedCity);
     futureCurrentLocation = getCurrentPosition();
+  }
+
+  void _loadSelectedCityAndFetchWeatherData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _selectedCity = prefs.getString('selectedCity')!;
+    });
+    if (_selectedCity != 'Vatican') {
+      futureWeather = fetchWeatherData(_selectedCity);
+    }
   }
 
   void _onItemTapped(int index) {
@@ -76,8 +88,11 @@ class _HomePageViewState extends State<HomePageView> {
   }
 
   Future<void> _refresh() async {
+    final prefs = await SharedPreferences.getInstance();
+
     setState(() {
-      futureWeather = fetchWeatherData('Vatican');
+      _selectedCity = prefs.getString('selectedCity')!;
+      futureWeather = fetchWeatherData(_selectedCity);
       futureCurrentLocation = getCurrentPosition();
     });
   }
@@ -100,7 +115,7 @@ class _HomePageViewState extends State<HomePageView> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const SearchPageView(),
+                      builder: (context) => const CitySelectionView(),
                     ),
                   );
                   // handle edit
@@ -169,7 +184,6 @@ class _HomePageViewState extends State<HomePageView> {
                 children: [
                   _buildMainWeatherInfo(weather),
                   _buildHourlyForecast(weather),
-                  Container(color: Colors.amber, width: 300, height: 300),
                 ],
               ),
             );
@@ -203,119 +217,50 @@ class _HomePageViewState extends State<HomePageView> {
   }
 
   Widget _buildMainTitle(Weather weather) {
-    return FutureBuilder<Placemark>(
-      future: futureCurrentLocation,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          );
-        } else if (snapshot.hasData && snapshot.data != null) {
-          final placemark = snapshot.data;
-          futureWeather = fetchWeatherData(
-            placemark?.locality ?? weather.locationName,
-          );
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    weather.locationName,
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              weather.locationName,
 
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 8), // spacing
-                  GestureDetector(
-                    onTap: () => _dialogBuilder(context),
+              style: const TextStyle(
+                fontFamily: 'Montserrat',
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 8), // spacing
+            GestureDetector(
+              onTap: () => _dialogBuilder(context),
 
-                    child: const Icon(
-                      Icons.my_location, // or Icons.location_on
-                      size: 24,
-                      color: Colors.blueAccent,
-                    ),
-                  ),
-                ],
+              child: const Icon(
+                Icons.my_location, // or Icons.location_on
+                size: 24,
+                color: Colors.blueAccent,
               ),
+            ),
+          ],
+        ),
 
-              // These two Text widgets might be better outside this Row or in another widget
-              const SizedBox(width: 8), // spacing for better layout
-              Text(
-                "${weather.currentTemperature}°C",
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 18,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                weather.conditionText,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-            ],
-          );
-        } else {
-          print("SONO IN ELSE");
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    weather.locationName,
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 8), // spacing
-                  GestureDetector(
-                    onTap: () => _dialogBuilder(context),
-
-                    child: const Icon(
-                      Icons.my_location, // or Icons.location_on
-                      size: 24,
-                      color: Colors.blueAccent,
-                    ),
-                  ),
-                ],
-              ),
-
-              // These two Text widgets might be better outside this Row or in another widget
-              const SizedBox(width: 8), // spacing for better layout
-              Text(
-                "${weather.currentTemperature}°C",
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 18,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                weather.conditionText,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-            ],
-          );
-        }
-      },
+        // These two Text widgets might be better outside this Row or in another widget
+        const SizedBox(width: 8), // spacing for better layout
+        Text(
+          "${weather.currentTemperature}°C",
+          style: const TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 18,
+            fontWeight: FontWeight.normal,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          weather.conditionText,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
+        ),
+      ],
     );
   }
 
