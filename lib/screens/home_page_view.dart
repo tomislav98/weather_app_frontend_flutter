@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart' show Geolocator, LocationPermission;
 import '../models/weather.dart';
 import '../services/weather_api.dart';
+import '../services/location_api.dart';
 import 'package:lottie/lottie.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'search_page_view.dart';
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -13,11 +17,56 @@ class HomePageView extends StatefulWidget {
 
 class _HomePageViewState extends State<HomePageView> {
   late Future<Weather> futureWeather;
+  Future<Placemark>? futureCurrentLocation;
+  late Future<void> locationServiceDialog;
   int _selectedIndex = 0;
+
+  Future<void> _dialogBuilder(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Basic dialog title'),
+          content: const Text(
+            'A dialog is a type of modal window that\n'
+            'appears in front of app content to\n'
+            'provide critical information, or prompt\n'
+            'for a decision to be made.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Disable'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Enable'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    futureWeather = fetchWeatherData('Some city'); // !TODO
+    initialize();
+  }
+
+  Future<void> initialize() async {
+    futureWeather = fetchWeatherData("Vatican");
+    futureCurrentLocation = getCurrentPosition();
   }
 
   void _onItemTapped(int index) {
@@ -28,8 +77,46 @@ class _HomePageViewState extends State<HomePageView> {
 
   Future<void> _refresh() async {
     setState(() {
-      futureWeather = fetchWeatherData('Some city'); // re-fetch data
+      futureWeather = fetchWeatherData('Vatican');
+      futureCurrentLocation = getCurrentPosition();
     });
+  }
+
+  void _showBottomMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (context) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.location_city),
+                title: const Text('Select city'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SearchPageView(),
+                    ),
+                  );
+                  // handle edit
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete),
+                title: const Text('Delete'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // handle delete
+                },
+              ),
+            ],
+          ),
+    );
   }
 
   @override
@@ -37,7 +124,22 @@ class _HomePageViewState extends State<HomePageView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Weather"),
-        backgroundColor: Colors.purple,
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        actions: [
+          GestureDetector(
+            onTap: () => _showBottomMenu(context),
+            child: Container(
+              margin: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.more_vert),
+            ),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _refresh,
@@ -63,6 +165,7 @@ class _HomePageViewState extends State<HomePageView> {
             return SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _buildMainWeatherInfo(weather),
                   _buildHourlyForecast(weather),
@@ -94,46 +197,125 @@ class _HomePageViewState extends State<HomePageView> {
       alignment: Alignment.center,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
+        children: [_buildMainTitle(weather)],
+      ),
+    );
+  }
+
+  Widget _buildMainTitle(Weather weather) {
+    return FutureBuilder<Placemark>(
+      future: futureCurrentLocation,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          );
+        } else if (snapshot.hasData && snapshot.data != null) {
+          final placemark = snapshot.data;
+          futureWeather = fetchWeatherData(
+            placemark?.locality ?? weather.locationName,
+          );
+          return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    weather.locationName,
+
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8), // spacing
+                  GestureDetector(
+                    onTap: () => _dialogBuilder(context),
+
+                    child: const Icon(
+                      Icons.my_location, // or Icons.location_on
+                      size: 24,
+                      color: Colors.blueAccent,
+                    ),
+                  ),
+                ],
+              ),
+
+              // These two Text widgets might be better outside this Row or in another widget
+              const SizedBox(width: 8), // spacing for better layout
               Text(
-                weather.locationName,
+                "${weather.currentTemperature}°C",
                 style: const TextStyle(
                   fontFamily: 'Montserrat',
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  fontWeight: FontWeight.normal,
                 ),
               ),
-              const SizedBox(width: 8), // spacing
-              GestureDetector(
-                onTap: () {
-                  // Your function to activate location, e.g. getCurrentCity();
-                  print('Location icon clicked!');
-                },
-                child: const Icon(
-                  Icons.my_location, // or Icons.location_on
-                  size: 24,
-                  color: Colors.blueAccent,
+              const SizedBox(width: 8),
+              Text(
+                weather.conditionText,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.normal,
                 ),
               ),
             ],
-          ),
-          Text(
-            "${weather.currentTemperature}°C",
-            style: const TextStyle(
-              fontFamily: 'Montserrat',
-              fontSize: 18,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-          Text(
-            weather.conditionText,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
-          ),
-        ],
-      ),
+          );
+        } else {
+          print("SONO IN ELSE");
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    weather.locationName,
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8), // spacing
+                  GestureDetector(
+                    onTap: () => _dialogBuilder(context),
+
+                    child: const Icon(
+                      Icons.my_location, // or Icons.location_on
+                      size: 24,
+                      color: Colors.blueAccent,
+                    ),
+                  ),
+                ],
+              ),
+
+              // These two Text widgets might be better outside this Row or in another widget
+              const SizedBox(width: 8), // spacing for better layout
+              Text(
+                "${weather.currentTemperature}°C",
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 18,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                weather.conditionText,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ],
+          );
+        }
+      },
     );
   }
 

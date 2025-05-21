@@ -1,1 +1,8 @@
 
+1) Enter the app
+2) doesn't have gps activated
+3) default city futureWeather is called
+4) if I activate gps, it shows the weather of the city I'm in so that means I called the futureWeather function with the city name as a parameter
+5) if I deactivate gps, it shows the last city I called
+TODO
+I need menu where I'm going to select the city that I want to be mine
