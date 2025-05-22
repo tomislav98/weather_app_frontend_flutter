@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:weather_app/screens/home_page_view.dart';
 import 'package:weather_app/screens/search_page_view.dart';
+import 'package:weather_app/services/weather_api.dart';
 
 class CitySelectionView extends StatefulWidget {
   const CitySelectionView({super.key});
@@ -19,9 +20,9 @@ class _CitySelectionViewState extends State<CitySelectionView> {
   }
 
   Future<void> initialize() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final cities = await getSavedCities();
     setState(() {
-      _savedCities = prefs.getStringList('savedCities') ?? [];
+      _savedCities = cities;
     });
   }
 
@@ -37,8 +38,13 @@ class _CitySelectionViewState extends State<CitySelectionView> {
               onTap: () async {
                 // Handle tap for the city at _savedCities[index]
                 print('Tapped city: ${_savedCities[index]}');
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setString('selectedCity', _savedCities[index]);
+
+                setMostRecentCity(_savedCities[index]);
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomePageView()),
+                );
               },
               child: Container(
                 margin: const EdgeInsets.all(8),

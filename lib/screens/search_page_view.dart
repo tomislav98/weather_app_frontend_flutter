@@ -2,6 +2,7 @@ import 'dart:async' show Timer;
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:weather_app/services/weather_api.dart';
 import '../services/search_api.dart';
 
 class SearchPageView extends StatefulWidget {
@@ -87,17 +88,12 @@ class _SearchPageViewState extends State<SearchPageView> {
                   return ListTile(
                     title: Text('${city['name']}, ${city['country']}'),
                     onTap: () async {
+                      print("THis is the city : $city");
                       // select the main city
                       final prefs = await SharedPreferences.getInstance();
                       await prefs.setString('selectedCity', city['name']);
+                      saveTheCities(city['name']);
 
-                      // set the list
-                      List<String> savedCities =
-                          prefs.getStringList('savedCities') ?? [];
-                      if (!savedCities.contains(city['name'])) {
-                        savedCities.add(city['name']);
-                        await prefs.setStringList('savedCities', savedCities);
-                      }
                       setState(() {
                         _controller.text = '';
                         _searchResults.clear();

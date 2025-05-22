@@ -1,8 +1,7 @@
 
 1) Enter the app
-2) doesn't have gps activated
-3) default city futureWeather is called
-4) if I activate gps, it shows the weather of the city I'm in so that means I called the futureWeather function with the city name as a parameter
-5) if I deactivate gps, it shows the last city I called
-TODO
-I need menu where I'm going to select the city that I want to be mine
+2) click on the geo icon
+3) if gps is not activated just write to
+dialog window to activte gps
+4) if gps activated write that you can
+deactivate
