@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart' show Lottie;
 import 'package:weather_app/screens/home_page_view.dart';
-import 'package:weather_app/screens/search_page_view.dart';
 import 'package:weather_app/services/weather_api.dart';
+import 'package:weather_app/utils/ui_colors.dart';
+
+import '../models/weather.dart' show Weather;
 
 class CitySelectionView extends StatefulWidget {
   const CitySelectionView({super.key});
@@ -14,19 +17,6 @@ class _CitySelectionViewState extends State<CitySelectionView> {
   List<String> _savedCities = [];
 
   @override
-  void initState() {
-    super.initState();
-    initialize();
-  }
-
-  Future<void> initialize() async {
-    final cities = await getSavedCities();
-    setState(() {
-      _savedCities = cities;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('City Selection')),
@@ -36,23 +26,105 @@ class _CitySelectionViewState extends State<CitySelectionView> {
           itemBuilder: (context, index) {
             return InkWell(
               onTap: () async {
-                // Handle tap for the city at _savedCities[index]
-                print('Tapped city: ${_savedCities[index]}');
-
                 setMostRecentCity(_savedCities[index]);
-                Navigator.pop(context);
-                Navigator.push(
+
+                Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const HomePageView()),
+                  PageRouteBuilder(
+                    transitionDuration: const Duration(milliseconds: 1000),
+                    pageBuilder:
+                        (context, animation, secondaryAnimation) =>
+                            const HomePageView(),
+                    transitionsBuilder: (
+                      context,
+                      animation,
+                      secondaryAnimation,
+                      child,
+                    ) {
+                      const begin = Offset(1.0, 0.0); // From right
+                      const end = Offset.zero;
+                      const curve = Curves.ease;
+
+                      final tween = Tween(
+                        begin: begin,
+                        end: end,
+                      ).chain(CurveTween(curve: curve));
+                      final offsetAnimation = animation.drive(tween);
+
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
+                  ),
                 );
               },
               child: Container(
+                height: 100,
                 margin: const EdgeInsets.all(8),
                 padding: const EdgeInsets.all(16),
-                color: Colors.blueAccent,
-                child: Text(
-                  _savedCities[index],
-                  style: const TextStyle(color: Colors.white),
+                decoration: BoxDecoration(
+                  color: UiColors.royalBlue.withValues(alpha: 0.8),
+
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: FutureBuilder(
+                  future: fetchWeatherData(_savedCities[index]),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: Lottie.asset(
+                          'assets/animations/loading/loading_indicator.json',
+                          width: 150,
+                          height: 150,
+                        ),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (!snapshot.hasData) {
+                      return const Center(child: Text('No data available'));
+                    }
+                    Weather weather = snapshot.data!;
+                    return Row(
+                      children: [
+                        Text(
+                          weather.locationName,
+                          style: const TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Spacer(),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              "${weather.currentTemperature}°",
+                              style: const TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 24,
+                                fontWeight: FontWeight.normal,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              weather.conditionText,
+                              style: const TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 13,
+                                fontWeight: FontWeight.normal,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             );
@@ -67,14 +139,36 @@ class _CitySelectionViewState extends State<CitySelectionView> {
           children: [
             GestureDetector(
               onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const SearchPageView(),
+                  PageRouteBuilder(
+                    transitionDuration: const Duration(milliseconds: 1500),
+                    pageBuilder:
+                        (context, animation, secondaryAnimation) =>
+                            const HomePageView(),
+                    transitionsBuilder: (
+                      context,
+                      animation,
+                      secondaryAnimation,
+                      child,
+                    ) {
+                      const begin = Offset(1.0, 0.0); // From right
+                      const end = Offset.zero;
+                      const curve = Curves.ease;
+
+                      final tween = Tween(
+                        begin: begin,
+                        end: end,
+                      ).chain(CurveTween(curve: curve));
+                      final offsetAnimation = animation.drive(tween);
+
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
                   ),
                 );
-                print('Text tapped!');
               },
               child: Text(
                 'Centered icon and text',
@@ -88,5 +182,18 @@ class _CitySelectionViewState extends State<CitySelectionView> {
         ),
       ),
     );
+  }
+
+  Future<void> initialize() async {
+    final cities = await getSavedCities();
+    setState(() {
+      _savedCities = cities;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initialize();
   }
 }

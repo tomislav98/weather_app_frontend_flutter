@@ -11,7 +11,6 @@ Future<List<dynamic>> searchCity(String query) async {
     ),
   );
   if (response.statusCode == 200) {
-    print("THIS IS RESPONSE: ${response.body}");
     return jsonDecode(response.body);
   } else {
     throw Exception('Failed to load data');

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:weather_app/screens/city_selection_view.dart';
+import 'package:weather_app/utils/ui_colors.dart';
 import '../models/weather.dart';
+import '../models/weather_icons.dart' show WeatherIcons;
 import '../services/weather_api.dart';
 import '../services/location_api.dart';
 import 'package:lottie/lottie.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -105,11 +106,34 @@ class _HomePageViewState extends State<HomePageView> {
                 leading: const Icon(Icons.location_city),
                 title: const Text('Select city'),
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const CitySelectionView(),
+                    PageRouteBuilder(
+                      transitionDuration: const Duration(milliseconds: 1000),
+                      pageBuilder:
+                          (context, animation, secondaryAnimation) =>
+                              const CitySelectionView(),
+                      transitionsBuilder: (
+                        context,
+                        animation,
+                        secondaryAnimation,
+                        child,
+                      ) {
+                        const begin = Offset(1.0, 0.0); // Slide from right
+                        const end = Offset.zero;
+                        const curve = Curves.ease;
+
+                        final tween = Tween(
+                          begin: begin,
+                          end: end,
+                        ).chain(CurveTween(curve: curve));
+                        final offsetAnimation = animation.drive(tween);
+
+                        return SlideTransition(
+                          position: offsetAnimation,
+                          child: child,
+                        );
+                      },
                     ),
                   );
                   // handle edit
@@ -131,6 +155,7 @@ class _HomePageViewState extends State<HomePageView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Weather"),
         centerTitle: true,
@@ -175,9 +200,13 @@ class _HomePageViewState extends State<HomePageView> {
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+
                 children: [
                   _buildMainWeatherInfo(weather),
+                  const SizedBox(height: 10),
                   _buildHourlyForecast(weather),
+                  const SizedBox(height: 10),
+                  _build_environmental_comfort(weather),
                 ],
               ),
             );
@@ -262,93 +291,198 @@ class _HomePageViewState extends State<HomePageView> {
   }
 
   Widget _buildHourlyForecast(Weather weather) {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width
-      height: MediaQuery.of(context).size.height * 0.19, // 20% of screen height
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color:
-            Colors.blueGrey.shade100, // or any color that contrasts with white
-        borderRadius: BorderRadius.circular(16), // rounded corners
-      ),
-      child: SizedBox(
-        height: 120,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: weather.hourly.length,
-          itemBuilder: (context, index) {
-            final hour = weather.hourly[index];
-            return Container(
-              width: 80,
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+    return Column(
+      children: [
+        Container(
+          width: MediaQuery.of(context).size.width * 0.9,
+          height: MediaQuery.of(context).size.height * 0.04,
+          color: Colors.white,
+          child: Text(
+            'WEATHER FORECAST',
+            style: TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.start,
+          ),
+        ),
+        Container(
+          width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width
+          height:
+              MediaQuery.of(context).size.height * 0.19, // 20% of screen height
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: UiColors.royalBlue.withValues(
+              alpha: 0.8,
+            ), // or any color that contrasts with white
+            borderRadius: BorderRadius.circular(16), // rounded corners
+          ),
+          child: SizedBox(
+            height: 120,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: weather.hourly.length,
+              itemBuilder: (context, index) {
+                final hour = weather.hourly[index];
+                return Container(
+                  width: 80,
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${hour.dateTime.hour}:00',
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 15,
+                          fontWeight: FontWeight.normal,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Icon(
+                        getWeatherIconForCode(hour.code),
+                        size: 50,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${hour.temperature}°C',
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 15,
+                          fontWeight: FontWeight.normal,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _build_environmental_comfort(Weather weather) {
+    return Column(
+      children: [
+        Container(
+          width: MediaQuery.of(context).size.width * 0.9,
+          height: MediaQuery.of(context).size.height * 0.04,
+          color: Colors.white,
+          child: Text(
+            'ENVIRONMENTAL COMFORT',
+            style: TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.start,
+          ),
+        ),
+        Container(
+          width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width
+          height:
+              MediaQuery.of(context).size.height * 0.19, // 20% of screen height
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: UiColors.royalBlue.withValues(
+              alpha: 0.8,
+            ), // or any color that contrasts with white
+            borderRadius: BorderRadius.circular(16), // rounded corners
+          ),
+          child: Row(
+            children: [
+              Column(
                 children: [
-                  Text('${hour.dateTime.hour}:00'),
-                  Image.network('https:${hour.icon}'),
-                  Text('${hour.temperature}°C'),
+                  Text(
+                    'Humidity',
+                    style: TextStyle(fontSize: 20, color: Colors.white),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        '${weather.humidity}',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                      Icon(
+                        WeatherIcons.wi_humidity,
+                        size: 30,
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
                 ],
               ),
-            );
-          },
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
 
 final Map<int, IconData> weatherCodeToIcon = {
-  1000: Icons.wb_sunny, // Sunny / Clear
-  1003: Icons.wb_cloudy, // Partly Cloudy
-  1006: Icons.cloud, // Cloudy
-  1009: Icons.cloud_queue, // Overcast
-  1030: Icons.blur_on, // Mist
-  1063: Icons.grain, // Patchy rain
-  1066: Icons.ac_unit, // Patchy snow
-  1069: Icons.ac_unit, // Patchy sleet
-  1072: Icons.ac_unit, // Freezing drizzle
-  1087: Icons.flash_on, // Thunder
-  1114: Icons.ac_unit, // Blowing snow
-  1117: Icons.ac_unit, // Blizzard
-  1135: Icons.foggy, // Fog (use custom if foggy isn't supported)
-  1147: Icons.foggy, // Freezing fog
-  1150: Icons.grain, // Light drizzle
-  1153: Icons.grain,
-  1168: Icons.grain,
-  1171: Icons.grain,
-  1180: Icons.grain,
-  1183: Icons.grain,
-  1186: Icons.grain,
-  1189: Icons.grain,
-  1192: Icons.grain,
-  1195: Icons.grain,
-  1198: Icons.ac_unit,
-  1201: Icons.ac_unit,
-  1204: Icons.ac_unit,
-  1207: Icons.ac_unit,
-  1210: Icons.ac_unit,
-  1213: Icons.ac_unit,
-  1216: Icons.ac_unit,
-  1219: Icons.ac_unit,
-  1222: Icons.ac_unit,
-  1225: Icons.ac_unit,
-  1237: Icons.ac_unit,
-  1240: Icons.grain,
-  1243: Icons.grain,
-  1246: Icons.grain,
-  1249: Icons.ac_unit,
-  1252: Icons.ac_unit,
-  1255: Icons.ac_unit,
-  1258: Icons.ac_unit,
-  1261: Icons.ac_unit,
-  1264: Icons.ac_unit,
-  1273: Icons.flash_on,
-  1276: Icons.flash_on,
-  1279: Icons.flash_on,
-  1282: Icons.flash_on,
+  1000: WeatherIcons.wi_day_sunny,
+  1003: WeatherIcons.wi_day_cloudy,
+  1006: WeatherIcons.wi_cloudy,
+  1009: WeatherIcons.wi_cloudy_gusts,
+  1030: WeatherIcons.wi_fog,
+  1063: WeatherIcons.wi_day_rain,
+  1066: WeatherIcons.wi_day_snow,
+  1069: WeatherIcons.wi_day_snow,
+  1072: WeatherIcons.wi_day_snow,
+  1087: WeatherIcons.wi_day_thunderstorm,
+  1114: WeatherIcons.wi_day_snow_wind,
+  1117: WeatherIcons.wi_day_snow_wind,
+  1135: WeatherIcons.wi_night_cloudy,
+  1147: WeatherIcons.wi_night_cloudy,
+  1150: WeatherIcons.wi_day_rain,
+  1153: WeatherIcons.wi_day_rain,
+  1168: WeatherIcons.wi_rain_wind,
+  1171: WeatherIcons.wi_rain_wind,
+  1180: WeatherIcons.wi_day_showers,
+  1183: WeatherIcons.wi_day_showers,
+  1186: WeatherIcons.wi_day_rain_wind,
+  1189: WeatherIcons.wi_day_rain_wind,
+  1192: WeatherIcons.wi_day_rain_wind,
+  1195: WeatherIcons.wi_day_rain_wind,
+  1198: WeatherIcons.wi_day_rain_wind,
+  1201: WeatherIcons.wi_day_rain_wind,
+  1204: WeatherIcons.wi_day_snow,
+  1207: WeatherIcons.wi_day_snow,
+  1210: WeatherIcons.wi_day_snow,
+  1213: WeatherIcons.wi_day_snow,
+  1216: WeatherIcons.wi_day_snow,
+  1219: WeatherIcons.wi_day_snow,
+  1222: WeatherIcons.wi_day_snow,
+  1225: WeatherIcons.wi_day_snow,
+  1237: WeatherIcons.wi_day_hail,
+  1240: WeatherIcons.wi_day_showers,
+  1243: WeatherIcons.wi_day_showers,
+  1246: WeatherIcons.wi_day_showers,
+  1249: WeatherIcons.wi_day_snow,
+  1252: WeatherIcons.wi_day_snow,
+  1255: WeatherIcons.wi_day_snow,
+  1258: WeatherIcons.wi_day_snow_wind,
+  1261: WeatherIcons.wi_day_snow_wind,
+  1264: WeatherIcons.wi_day_snow_wind,
+  1273: WeatherIcons.wi_day_thunderstorm,
+  1276: WeatherIcons.wi_day_thunderstorm,
+  1279: WeatherIcons.wi_day_thunderstorm,
+  1282: WeatherIcons.wi_day_thunderstorm,
 };
+
+IconData getWeatherIconForCode(int code) {
+  return weatherCodeToIcon[code] ?? WeatherIcons.wi_fog; // fallback icon
+}

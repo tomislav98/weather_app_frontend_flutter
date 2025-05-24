@@ -15,7 +15,6 @@ Future<Weather> fetchWeatherData(String city) async {
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     return Weather.fromJson(data);
   } else {
-    print(response.body);
     throw Exception('Failed to load weather data.');
   }
 }
