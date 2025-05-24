@@ -402,23 +402,65 @@ class _HomePageViewState extends State<HomePageView> {
             borderRadius: BorderRadius.circular(16), // rounded corners
           ),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Humidity',
                     style: TextStyle(fontSize: 20, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    '${weather.humidity}',
+                    style: TextStyle(
+                      fontSize: 50,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.start,
+                  ),
+                ],
+              ),
+              Icon(WeatherIcons.wi_humidity, size: 70, color: Colors.white),
+              Spacer(),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Perceived',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        '${weather.feelslike_c}',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                   Row(
                     children: [
                       Text(
-                        '${weather.humidity}',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        'UV index',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      Icon(
-                        WeatherIcons.wi_humidity,
-                        size: 30,
-                        color: Colors.white,
+                      SizedBox(width: 8),
+                      Text(
+                        '${weather.uv}',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
