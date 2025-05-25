@@ -150,7 +150,7 @@ class _HomePageViewState extends State<HomePageView> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Weather"),
+        title: const Text("Royale weather"),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white,
@@ -177,13 +177,7 @@ class _HomePageViewState extends State<HomePageView> {
               future: fetchWeatherData(savedCities[index]),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: Lottie.asset(
-                      'assets/animations/loading/loading_indicator.json',
-                      width: 150,
-                      height: 150,
-                    ),
-                  );
+                  return Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData) {
@@ -226,11 +220,10 @@ class _HomePageViewState extends State<HomePageView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(width: 8), // spacing
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(width: 8), // space between icon and text
+              const SizedBox(width: 4), // space between icon and text
               Text(
                 weather.locationName,
                 style: const TextStyle(
@@ -262,19 +255,25 @@ class _HomePageViewState extends State<HomePageView> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            "${weather.currentTemperature}°C",
-            style: const TextStyle(
-              fontFamily: 'Montserrat',
-              fontSize: 18,
-              fontWeight: FontWeight.normal,
-            ),
+          const SizedBox(height: 2),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "${weather.currentTemperature}",
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 50,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+              Icon(WeatherIcons.wi_celsius, size: 70, color: Colors.black),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 2),
           Text(
             weather.conditionText,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
         ],
       ),

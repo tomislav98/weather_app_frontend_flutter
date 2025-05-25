@@ -224,5 +224,6 @@ class WeatherIcons {
     0xf050,
     fontFamily: _kFontFam,
   );
+  static const IconData wi_celsius = IconData(0xf03c, fontFamily: _kFontFam);
   // You can add more icons here...
 }

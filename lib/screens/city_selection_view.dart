@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart' show Lottie;
 import 'package:weather_app/screens/home_page_view.dart';
+import 'package:weather_app/screens/search_page_view.dart';
 import 'package:weather_app/services/weather_api.dart';
 import 'package:weather_app/utils/ui_colors.dart';
 
@@ -19,6 +19,7 @@ class _CitySelectionViewState extends State<CitySelectionView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(title: const Text('City Selection')),
       body: Center(
         child: ListView.builder(
@@ -72,13 +73,7 @@ class _CitySelectionViewState extends State<CitySelectionView> {
                   future: fetchWeatherData(_savedCities[index]),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(
-                        child: Lottie.asset(
-                          'assets/animations/loading/loading_indicator.json',
-                          width: 150,
-                          height: 150,
-                        ),
-                      );
+                      return Center(child: CircularProgressIndicator());
                     } else if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
                     } else if (!snapshot.hasData) {
@@ -131,13 +126,13 @@ class _CitySelectionViewState extends State<CitySelectionView> {
           },
         ),
       ),
-      bottomNavigationBar: Container(
-        color: Colors.grey[200],
-        padding: EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GestureDetector(
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        padding: const EdgeInsets.all(16),
+        child: SizedBox(
+          height: 50, // optional fixed height for better control
+          child: Center(
+            child: GestureDetector(
               onTap: () {
                 Navigator.pushReplacement(
                   context,
@@ -170,15 +165,43 @@ class _CitySelectionViewState extends State<CitySelectionView> {
                   ),
                 );
               },
-              child: Text(
-                'Centered icon and text',
-                style: TextStyle(
-                  color: Colors.blue, // Optional for visual feedback
-                  decoration: TextDecoration.underline, // Optional
-                ),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    PageRouteBuilder(
+                      transitionDuration: const Duration(milliseconds: 1000),
+                      pageBuilder:
+                          (context, animation, secondaryAnimation) =>
+                              const SearchPageView(),
+                      transitionsBuilder: (
+                        context,
+                        animation,
+                        secondaryAnimation,
+                        child,
+                      ) {
+                        const begin = Offset(1.0, 0.0); // From right
+                        const end = Offset.zero;
+                        const curve = Curves.ease;
+
+                        final tween = Tween(
+                          begin: begin,
+                          end: end,
+                        ).chain(CurveTween(curve: curve));
+                        final offsetAnimation = animation.drive(tween);
+
+                        return SlideTransition(
+                          position: offsetAnimation,
+                          child: child,
+                        );
+                      },
+                    ),
+                  );
+                },
+                child: Column(children: [Icon(Icons.add), Text('Add City')]),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
