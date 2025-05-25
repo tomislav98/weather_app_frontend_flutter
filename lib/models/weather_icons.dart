@@ -220,5 +220,9 @@ class WeatherIcons {
   static const IconData wi_cloud_up = IconData(0xf040, fontFamily: _kFontFam);
 
   static const IconData wi_humidity = IconData(0xf07a, fontFamily: _kFontFam);
+  static const IconData wi_strong_wind = IconData(
+    0xf050,
+    fontFamily: _kFontFam,
+  );
   // You can add more icons here...
 }

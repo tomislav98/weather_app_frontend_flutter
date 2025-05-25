@@ -38,7 +38,7 @@ void saveTheCities(String city) async {
 */
 Future<List<String>> getSavedCities() async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getStringList('savedCities') ?? [];
+  return prefs.getStringList('savedCities') ?? ['Vatican'];
 }
 
 /*

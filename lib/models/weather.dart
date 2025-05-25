@@ -5,6 +5,7 @@ class Weather {
   final double currentTemperature;
   final String conditionText;
   final double windSpeed;
+  final String windDir;
   final int humidity;
   final List<HourlyWeather> hourly;
   final double feelslike_c;
@@ -14,6 +15,7 @@ class Weather {
     required this.currentTemperature,
     required this.conditionText,
     required this.windSpeed,
+    required this.windDir,
     required this.humidity,
     required this.hourly,
     required this.feelslike_c,
@@ -32,6 +34,7 @@ class Weather {
       currentTemperature: (weatherJson['current']['temp_c'] as num).toDouble(),
       conditionText: weatherJson['current']['condition']['text'],
       windSpeed: (weatherJson['current']['wind_kph'] as num).toDouble(),
+      windDir: weatherJson['current']['wind_dir'],
       humidity: weatherJson['current']['humidity'],
       hourly: hourlyWeatherList,
       feelslike_c: (weatherJson['current']['feelslike_c'] as num).toDouble(),

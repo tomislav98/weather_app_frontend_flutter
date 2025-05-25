@@ -21,8 +21,7 @@ class _HomePageViewState extends State<HomePageView> {
   Future<Placemark>? manageGPS;
   late Future<void> locationServiceDialog;
   String _selectedCity = 'Vatican';
-
-  int _selectedIndex = 0;
+  List<String> savedCities = [];
 
   Future<void> _dialogBuilder(BuildContext context) {
     return showDialog<void>(
@@ -69,7 +68,7 @@ class _HomePageViewState extends State<HomePageView> {
 
   Future<void> initialize() async {
     futureWeather = fetchWeatherData(_selectedCity);
-
+    savedCities = await getSavedCities();
     final city = await getMostRecentCity();
     setState(() {
       _selectedCity = city;
@@ -77,12 +76,6 @@ class _HomePageViewState extends State<HomePageView> {
     if (_selectedCity != 'Vatican') {
       futureWeather = fetchWeatherData(_selectedCity);
     }
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
   }
 
   Future<void> _refresh() async {
@@ -175,53 +168,51 @@ class _HomePageViewState extends State<HomePageView> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: FutureBuilder<Weather>(
-          future: futureWeather,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: Lottie.asset(
-                  'assets/animations/loading/loading_indicator.json',
-                  width: 150,
-                  height: 150,
-                ),
-              );
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData) {
-              return const Center(child: Text('No data available'));
-            }
+      body: PageView.builder(
+        itemCount: savedCities.length,
+        itemBuilder: (context, index) {
+          return RefreshIndicator(
+            onRefresh: _refresh,
+            child: FutureBuilder<Weather>(
+              future: fetchWeatherData(savedCities[index]),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: Lottie.asset(
+                      'assets/animations/loading/loading_indicator.json',
+                      width: 150,
+                      height: 150,
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData) {
+                  return const Center(child: Text('No data available'));
+                }
 
-            final weather = snapshot.data!;
+                final weather = snapshot.data!;
 
-            return SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
 
-                children: [
-                  _buildMainWeatherInfo(weather),
-                  const SizedBox(height: 10),
-                  _buildHourlyForecast(weather),
-                  const SizedBox(height: 10),
-                  _build_environmental_comfort(weather),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Hourly'),
-          BottomNavigationBarItem(icon: Icon(Icons.date_range), label: 'Daily'),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
-        onTap: _onItemTapped,
+                    children: [
+                      _buildMainWeatherInfo(weather),
+                      const SizedBox(height: 10),
+                      _buildHourlyForecast(weather),
+                      const SizedBox(height: 10),
+                      _build_environmental_comfort(weather),
+                      const SizedBox(height: 10),
+                      _build_wind_forecast(weather),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }
@@ -310,7 +301,7 @@ class _HomePageViewState extends State<HomePageView> {
         Container(
           width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width
           height:
-              MediaQuery.of(context).size.height * 0.19, // 20% of screen height
+              MediaQuery.of(context).size.height * 0.20, // 20% of screen height
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: UiColors.royalBlue.withValues(
@@ -319,7 +310,7 @@ class _HomePageViewState extends State<HomePageView> {
             borderRadius: BorderRadius.circular(16), // rounded corners
           ),
           child: SizedBox(
-            height: 120,
+            height: MediaQuery.of(context).size.height * 0.15,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: weather.hourly.length,
@@ -459,6 +450,87 @@ class _HomePageViewState extends State<HomePageView> {
                       SizedBox(width: 8),
                       Text(
                         '${weather.uv}',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _build_wind_forecast(Weather weather) {
+    return Column(
+      children: [
+        Container(
+          width: MediaQuery.of(context).size.width * 0.9,
+          height: MediaQuery.of(context).size.height * 0.04,
+          color: Colors.white,
+          child: Text(
+            'WIND',
+            style: TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.start,
+          ),
+        ),
+        Container(
+          width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width
+          height:
+              MediaQuery.of(context).size.height * 0.19, // 20% of screen height
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: UiColors.royalBlue.withValues(
+              alpha: 0.8,
+            ), // or any color that contrasts with white
+            borderRadius: BorderRadius.circular(16), // rounded corners
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(WeatherIcons.wi_strong_wind, size: 70, color: Colors.white),
+              Spacer(),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Direction',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        weather.windDir,
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Speed',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        weather.windSpeed.toString(),
                         style: TextStyle(fontSize: 18, color: Colors.white),
                         textAlign: TextAlign.center,
                       ),
