@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart' show Geolocator;
+import 'package:weather_app/db/sqflite_db.dart';
 import 'package:weather_app/screens/city_selection_view.dart';
 import 'package:weather_app/utils/ui_colors.dart';
 import '../models/weather.dart';
 import '../models/weather_icons.dart' show WeatherIcons;
 import '../services/weather_api.dart';
 import '../services/location_api.dart';
-import 'package:lottie/lottie.dart';
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -21,6 +21,7 @@ class _HomePageViewState extends State<HomePageView> {
   Future<Placemark>? manageGPS;
   late Future<void> locationServiceDialog;
   String _selectedCity = 'Vatican';
+  final dbHelper = DatabaseHelper();
   List<String> savedCities = [];
 
   Future<void> _dialogBuilder(BuildContext context) {
@@ -67,21 +68,26 @@ class _HomePageViewState extends State<HomePageView> {
   }
 
   Future<void> initialize() async {
-    futureWeather = fetchWeatherData(_selectedCity);
-    savedCities = await getSavedCities();
-    final city = await getMostRecentCity();
+    final cities = await dbHelper.getAllCities();
+
+    final recent = await getMostRecentCity();
     setState(() {
-      _selectedCity = city;
+      savedCities = cities;
+      _selectedCity = recent;
     });
-    if (_selectedCity != 'Vatican') {
-      futureWeather = fetchWeatherData(_selectedCity);
-    }
   }
 
   Future<void> _refresh() async {
-    _selectedCity = await getMostRecentCity();
+    // Step 1: Reload cities from the database
+    final cities = await dbHelper.getAllCities();
+
+    // Step 2: Optionally get the most recent one
+    final recent = cities.isNotEmpty ? cities.first : 'Vatican';
+
     setState(() {
-      futureWeather = fetchWeatherData(_selectedCity);
+      // here is triggered FutureBuilder
+      savedCities = cities;
+      _selectedCity = recent;
     });
   }
 
@@ -241,7 +247,7 @@ class _HomePageViewState extends State<HomePageView> {
                     return;
                   }
                   final placemark = await getCurrentPosition();
-                  saveTheCities(placemark.locality!);
+                  dbHelper.insertCity(placemark.locality!);
                   setState(() {
                     _selectedCity = placemark.locality!;
                     futureWeather = fetchWeatherData(_selectedCity);

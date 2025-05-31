@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:weather_app/db/sqflite_db.dart';
 import 'package:weather_app/screens/home_page_view.dart';
 import 'package:weather_app/screens/search_page_view.dart';
 import 'package:weather_app/services/weather_api.dart';
@@ -14,6 +15,7 @@ class CitySelectionView extends StatefulWidget {
 }
 
 class _CitySelectionViewState extends State<CitySelectionView> {
+  final dbHelper = DatabaseHelper();
   List<String> _savedCities = [];
 
   @override
@@ -70,7 +72,9 @@ class _CitySelectionViewState extends State<CitySelectionView> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: FutureBuilder(
-                  future: fetchWeatherData(_savedCities[index]),
+                  future: fetchWeatherData(
+                    _savedCities[index],
+                  ), // need to modify
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(child: CircularProgressIndicator());
@@ -80,44 +84,81 @@ class _CitySelectionViewState extends State<CitySelectionView> {
                       return const Center(child: Text('No data available'));
                     }
                     Weather weather = snapshot.data!;
-                    return Row(
-                      children: [
-                        Text(
-                          weather.locationName,
-                          style: const TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                    return GestureDetector(
+                      onTap: () {
+                        setMostRecentCity(weather.locationName);
+                        Navigator.pushReplacement(
+                          context,
+                          PageRouteBuilder(
+                            transitionDuration: const Duration(
+                              milliseconds: 1500,
+                            ),
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    const HomePageView(),
+                            transitionsBuilder: (
+                              context,
+                              animation,
+                              secondaryAnimation,
+                              child,
+                            ) {
+                              const begin = Offset(1.0, 0.0); // From right
+                              const end = Offset.zero;
+                              const curve = Curves.ease;
+
+                              final tween = Tween(
+                                begin: begin,
+                                end: end,
+                              ).chain(CurveTween(curve: curve));
+                              final offsetAnimation = animation.drive(tween);
+
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: child,
+                              );
+                            },
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Spacer(),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              "${weather.currentTemperature}°",
-                              style: const TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 24,
-                                fontWeight: FontWeight.normal,
-                                color: Colors.white,
-                              ),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Text(
+                            weather.locationName,
+                            style: const TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              weather.conditionText,
-                              style: const TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 13,
-                                fontWeight: FontWeight.normal,
-                                color: Colors.white,
+                          ),
+                          const SizedBox(height: 8),
+                          const Spacer(),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "${weather.currentTemperature}°",
+                                style: const TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.normal,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                              const SizedBox(height: 8),
+                              Text(
+                                weather.conditionText,
+                                style: const TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.normal,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     );
                   },
                 ),
@@ -133,38 +174,6 @@ class _CitySelectionViewState extends State<CitySelectionView> {
           height: 50, // optional fixed height for better control
           child: Center(
             child: GestureDetector(
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  PageRouteBuilder(
-                    transitionDuration: const Duration(milliseconds: 1500),
-                    pageBuilder:
-                        (context, animation, secondaryAnimation) =>
-                            const HomePageView(),
-                    transitionsBuilder: (
-                      context,
-                      animation,
-                      secondaryAnimation,
-                      child,
-                    ) {
-                      const begin = Offset(1.0, 0.0); // From right
-                      const end = Offset.zero;
-                      const curve = Curves.ease;
-
-                      final tween = Tween(
-                        begin: begin,
-                        end: end,
-                      ).chain(CurveTween(curve: curve));
-                      final offsetAnimation = animation.drive(tween);
-
-                      return SlideTransition(
-                        position: offsetAnimation,
-                        child: child,
-                      );
-                    },
-                  ),
-                );
-              },
               child: GestureDetector(
                 onTap: () {
                   Navigator.pushReplacement(
@@ -208,7 +217,7 @@ class _CitySelectionViewState extends State<CitySelectionView> {
   }
 
   Future<void> initialize() async {
-    final cities = await getSavedCities();
+    final cities = await dbHelper.getAllCities();
     setState(() {
       _savedCities = cities;
     });

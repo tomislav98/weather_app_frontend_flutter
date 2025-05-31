@@ -1,7 +1,2 @@
-
-1) Enter the app
-2) click on the geo icon
-3) if gps is not activated just write to
-dialog window to activte gps
-4) if gps activated write that you can
-deactivate
+TODOS
+1) When selecting the city that city need to be open on the main page

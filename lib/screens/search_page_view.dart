@@ -2,6 +2,7 @@ import 'dart:async' show Timer;
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:weather_app/db/sqflite_db.dart';
 import 'package:weather_app/services/weather_api.dart';
 import '../services/search_api.dart';
 
@@ -15,6 +16,7 @@ class SearchPageView extends StatefulWidget {
 class _SearchPageViewState extends State<SearchPageView> {
   TextEditingController _controller = TextEditingController();
   List<dynamic> _searchResults = [];
+  final dbHelper = DatabaseHelper();
   Timer? _debounce;
 
   @override
@@ -92,7 +94,7 @@ class _SearchPageViewState extends State<SearchPageView> {
                       // select the main city
                       final prefs = await SharedPreferences.getInstance();
                       await prefs.setString('selectedCity', city['name']);
-                      saveTheCities(city['name']);
+                      dbHelper.insertCity(city['name']);
 
                       setState(() {
                         _controller.text = '';

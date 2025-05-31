@@ -13,11 +13,9 @@ Future<Placemark> getCurrentPosition() async {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        print('Location permission denied');
         return Future.error('Location permission denied');
       }
       if (permission == LocationPermission.deniedForever) {
-        print('Location permission denied forever');
         return Future.error('Location permission denied forever');
       }
     }

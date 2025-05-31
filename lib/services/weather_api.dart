@@ -20,28 +20,6 @@ Future<Weather> fetchWeatherData(String city) async {
 }
 
 /*
-  Save the cities in the list
-  the cites that was selected by user
-*/
-void saveTheCities(String city) async {
-  final prefs = await SharedPreferences.getInstance();
-  // set the list
-  List<String> savedCities = prefs.getStringList('savedCities') ?? [];
-  if (!savedCities.contains(city)) {
-    savedCities.add(city);
-    await prefs.setStringList('savedCities', savedCities);
-  }
-}
-
-/*
-  Get all the cites user selected
-*/
-Future<List<String>> getSavedCities() async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getStringList('savedCities') ?? ['Vatican'];
-}
-
-/*
   get the most recent city that would be displayed
   on the main page
 */
