@@ -8,6 +8,7 @@ import '../models/weather.dart';
 import '../models/weather_icons.dart' show WeatherIcons;
 import '../services/weather_api.dart';
 import '../services/location_api.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -23,6 +24,7 @@ class _HomePageViewState extends State<HomePageView> {
   String _selectedCity = 'Vatican';
   final dbHelper = DatabaseHelper();
   List<String> savedCities = [];
+  late PageController _pageController;
 
   Future<void> _dialogBuilder(BuildContext context) {
     return showDialog<void>(
@@ -65,6 +67,7 @@ class _HomePageViewState extends State<HomePageView> {
   void initState() {
     super.initState();
     initialize();
+    _pageController = PageController();
   }
 
   Future<void> initialize() async {
@@ -174,45 +177,76 @@ class _HomePageViewState extends State<HomePageView> {
           ),
         ],
       ),
-      body: PageView.builder(
-        itemCount: savedCities.length,
-        itemBuilder: (context, index) {
-          return RefreshIndicator(
-            onRefresh: _refresh,
-            child: FutureBuilder<Weather>(
-              future: fetchWeatherData(savedCities[index]),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData) {
-                  return const Center(child: Text('No data available'));
-                }
+      body: Column(
+        children: [
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: savedCities.length,
+              itemBuilder: (context, index) {
+                return RefreshIndicator(
+                  onRefresh: _refresh,
+                  child: FutureBuilder<Weather>(
+                    future: fetchWeatherData(savedCities[index]),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData) {
+                        return const Center(child: Text('No data available'));
+                      }
 
-                final weather = snapshot.data!;
+                      final weather = snapshot.data!;
 
-                return SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-
-                    children: [
-                      _buildMainWeatherInfo(weather),
-                      const SizedBox(height: 10),
-                      _buildHourlyForecast(weather),
-                      const SizedBox(height: 10),
-                      _build_environmental_comfort(weather),
-                      const SizedBox(height: 10),
-                      _build_wind_forecast(weather),
-                      const SizedBox(height: 10),
-                    ],
+                      return SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildMainWeatherInfo(weather),
+                            const SizedBox(height: 10),
+                            _buildHourlyForecast(weather),
+                            const SizedBox(height: 10),
+                            _build_environmental_comfort(weather),
+                            const SizedBox(height: 10),
+                            _build_wind_forecast(weather),
+                            const SizedBox(height: 10),
+                            _build_sunrise_widget(weather),
+                            const SizedBox(height: 10),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 );
               },
             ),
-          );
-        },
+          ),
+          // Fixed page indicator below the PageView
+          // The SmoothPageIndicator needs to know the
+          // current page index so it can highlight the correct dot.
+          // Simple analogy:
+
+          // Think of a controller as a remote control:
+          // The remote controls the TV (view).
+          // It sends commands to the TV to change the channel or volume.
+          // It also receives feedback (current channel) so it can display
+          //  the correct info on its screen.
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SmoothPageIndicator(
+              controller: _pageController,
+              count: savedCities.length,
+              effect: WormEffect(
+                dotHeight: 12,
+                dotWidth: 12,
+                activeDotColor: Colors.blueAccent,
+                dotColor: Colors.grey.shade300,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -540,6 +574,93 @@ class _HomePageViewState extends State<HomePageView> {
                         textAlign: TextAlign.center,
                       ),
                     ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _build_sunrise_widget(Weather weather) {
+    return Column(
+      children: [
+        Container(
+          width: MediaQuery.of(context).size.width * 0.9,
+          height: MediaQuery.of(context).size.height * 0.04,
+          color: Colors.white,
+          child: Text(
+            'SUNRISE/SUNSET',
+            style: TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.start,
+          ),
+        ),
+        Container(
+          width: MediaQuery.of(context).size.width * 0.9, // 90% of screen width
+          height:
+              MediaQuery.of(context).size.height * 0.19, // 20% of screen height
+          padding: const EdgeInsets.all(16),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: UiColors.royalBlue.withValues(
+              alpha: 0.8,
+            ), // or any color that contrasts with white
+            borderRadius: BorderRadius.circular(16), // rounded corners
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(WeatherIcons.wi_sunrise, size: 70, color: Colors.white),
+                  Text(
+                    'Sunrise',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 1),
+                  Text(
+                    weather.sunrise,
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Icon(
+                      WeatherIcons.wi_sunset,
+                      size: 70,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    'Sunset',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 1),
+                  Text(
+                    weather.sunset,
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),

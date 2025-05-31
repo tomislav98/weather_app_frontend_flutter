@@ -10,6 +10,9 @@ class Weather {
   final List<HourlyWeather> hourly;
   final double feelslike_c;
   final double uv;
+  final String sunrise;
+  final String sunset;
+
   const Weather({
     required this.locationName,
     required this.currentTemperature,
@@ -20,6 +23,8 @@ class Weather {
     required this.hourly,
     required this.feelslike_c,
     required this.uv,
+    required this.sunrise,
+    required this.sunset,
   });
 
   factory Weather.fromJson(Map<String, dynamic> weatherJson) {
@@ -39,6 +44,8 @@ class Weather {
       hourly: hourlyWeatherList,
       feelslike_c: (weatherJson['current']['feelslike_c'] as num).toDouble(),
       uv: (weatherJson['current']['uv'] as num).toDouble(),
+      sunrise: (weatherJson['forecast']['forecastday'][0]['astro']['sunrise']),
+      sunset: (weatherJson['forecast']['forecastday'][0]['astro']['sunset']),
     );
   }
 }
