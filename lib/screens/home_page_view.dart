@@ -18,49 +18,54 @@ class HomePageView extends StatefulWidget {
 }
 
 class _HomePageViewState extends State<HomePageView> {
-  late Future<Weather> futureWeather;
   Future<Placemark>? manageGPS;
   late Future<void> locationServiceDialog;
-  String _selectedCity = 'Vatican';
   final dbHelper = DatabaseHelper();
   List<String> savedCities = [];
   late PageController _pageController;
 
-  Future<void> _dialogBuilder(BuildContext context) {
-    return showDialog<void>(
+  Future<void> _showGpsDisableDialog(BuildContext context) async {
+    bool? result = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
+      barrierDismissible: false, // User must tap a button
+      builder: (context) {
         return AlertDialog(
-          title: const Text('Basic dialog title'),
-          content: const Text(
-            'A dialog is a type of modal window that\n'
-            'appears in front of app content to\n'
-            'provide critical information, or prompt\n'
-            'for a decision to be made.',
-          ),
-          actions: <Widget>[
+          title: Text('GPS is enabled'),
+          content: Text('Would you like to disable GPS?'),
+          actions: [
             TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Disable'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(false), // User says NO
+              child: Text('No'),
             ),
             TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Enable'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(true); // User says YES
               },
+              child: Text('Yes'),
             ),
           ],
         );
       },
     );
+
+    if (result == true) {
+      // User wants to disable GPS
+      // You can navigate them to settings or give instructions
+      _openLocationSettings();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _openLocationSettings() {
+    // Unfortunately, you cannot disable GPS programmatically for privacy reasons,
+    // but you can open the location settings page for the user.
+
+    Geolocator.openLocationSettings();
   }
 
   @override
@@ -73,10 +78,9 @@ class _HomePageViewState extends State<HomePageView> {
   Future<void> initialize() async {
     final cities = await dbHelper.getAllCities();
 
-    final recent = await getMostRecentCity();
     setState(() {
+      print("THIS ARE CITES: ${cities}");
       savedCities = cities;
-      _selectedCity = recent;
     });
   }
 
@@ -85,12 +89,10 @@ class _HomePageViewState extends State<HomePageView> {
     final cities = await dbHelper.getAllCities();
 
     // Step 2: Optionally get the most recent one
-    final recent = cities.isNotEmpty ? cities.first : 'Vatican';
 
     setState(() {
       // here is triggered FutureBuilder
       savedCities = cities;
-      _selectedCity = recent;
     });
   }
 
@@ -277,15 +279,11 @@ class _HomePageViewState extends State<HomePageView> {
                   final serviceEnabled =
                       await Geolocator.isLocationServiceEnabled();
                   if (serviceEnabled) {
-                    _dialogBuilder(context);
+                    _showGpsDisableDialog(context);
                     return;
                   }
                   final placemark = await getCurrentPosition();
                   dbHelper.insertCity(placemark.locality!);
-                  setState(() {
-                    _selectedCity = placemark.locality!;
-                    futureWeather = fetchWeatherData(_selectedCity);
-                  });
                 },
                 child: const Icon(
                   Icons.my_location,

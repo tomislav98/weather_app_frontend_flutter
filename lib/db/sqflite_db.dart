@@ -26,7 +26,7 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS cities(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        city TEXT
+        city TEXT UNIQUE
       )
     ''');
     // Insert default city: Vatican
