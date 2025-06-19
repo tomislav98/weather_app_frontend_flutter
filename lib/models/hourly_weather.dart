@@ -18,7 +18,7 @@ class HourlyWeather {
         (json['time_epoch'] as int) * 1000,
       ),
       temperature: (json['temp_c'] as num).toDouble(),
-      description: json['condition']['text'],
+      description: json['condition']['text'].toString().trim().toLowerCase(),
       icon: json['condition']['icon'],
       code: json['condition']['code'],
     );

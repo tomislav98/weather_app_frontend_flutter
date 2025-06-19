@@ -1,2 +1,9 @@
 TODOS
 1) When selecting the city that city need to be open on the main page
+
+1) eseguire il device
+flutter emulators --launch Pixel_9
+flutter run
+2) Eseguire la shell per vedere i logs
+adb shell
+run-as com.example.weather_app e poi vado in app_flutter

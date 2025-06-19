@@ -1,4 +1,5 @@
 import 'package:weather_app/models/hourly_weather.dart' show HourlyWeather;
+import 'package:flutter_map/flutter_map.dart';
 
 class Weather {
   final String locationName;
@@ -12,6 +13,8 @@ class Weather {
   final double uv;
   final String sunrise;
   final String sunset;
+  final int code;
+  final double maxTempC;
 
   const Weather({
     required this.locationName,
@@ -25,6 +28,8 @@ class Weather {
     required this.uv,
     required this.sunrise,
     required this.sunset,
+    required this.code,
+    required this.maxTempC,
   });
 
   factory Weather.fromJson(Map<String, dynamic> weatherJson) {
@@ -37,7 +42,11 @@ class Weather {
     return Weather(
       locationName: weatherJson['location']['name'],
       currentTemperature: (weatherJson['current']['temp_c'] as num).toDouble(),
-      conditionText: weatherJson['current']['condition']['text'],
+      conditionText:
+          weatherJson['current']['condition']['text']
+              .toString()
+              .trim()
+              .toLowerCase(),
       windSpeed: (weatherJson['current']['wind_kph'] as num).toDouble(),
       windDir: weatherJson['current']['wind_dir'],
       humidity: weatherJson['current']['humidity'],
@@ -46,6 +55,10 @@ class Weather {
       uv: (weatherJson['current']['uv'] as num).toDouble(),
       sunrise: (weatherJson['forecast']['forecastday'][0]['astro']['sunrise']),
       sunset: (weatherJson['forecast']['forecastday'][0]['astro']['sunset']),
+      code: (weatherJson['current']['condition']['code'] as num).toInt(),
+      maxTempC:
+          (weatherJson['forecast']['forecastday'][0]['day']['maxtemp_c'] as num)
+              .toDouble(),
     );
   }
 }
