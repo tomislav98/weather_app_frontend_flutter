@@ -46,65 +46,77 @@ class _SearchPageViewState extends State<SearchPageView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Add the City')),
-      body: RefreshIndicator(
-        onRefresh: () async {},
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              margin: EdgeInsets.only(top: 40, left: 20, right: 20),
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xff1D1617).withOpacity(0.11),
-                    spreadRadius: 0.0,
-                    blurRadius: 5,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: _controller,
-                onChanged: (_) => _onSearchChanged(),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.all(16),
-                  prefixIcon: const Icon(Icons.search),
-                  hintText: 'Search...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
+      body: Container(
+        padding: EdgeInsets.all(16),
+        child: RefreshIndicator(
+          onRefresh: () async {},
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                margin: EdgeInsets.only(top: 40, left: 20, right: 20),
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xff1D1617).withOpacity(0.11),
+                      spreadRadius: 0.0,
+                      blurRadius: 5,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _controller,
+                  onChanged: (_) => _onSearchChanged(),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.all(16),
+                    prefixIcon: const Icon(Icons.search),
+                    hintText: 'Search...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
               ),
-            ),
-            // 🔽 Show search results
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _searchResults.length,
-                itemBuilder: (context, index) {
-                  final city = _searchResults[index];
-                  return ListTile(
-                    title: Text('${city['name']}, ${city['country']}'),
-                    onTap: () async {
-                      print("THis is the city : $city");
-                      // select the main city
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.setString('selectedCity', city['name']);
-                      dbHelper.insertCity(city['name']);
+              // 🔽 Show search results
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _searchResults.length,
+                  itemBuilder: (context, index) {
+                    final city = _searchResults[index];
+                    return ListTile(
+                      title: Text('${city['name']}, ${city['country']}'),
+                      onTap: () async {
+                        print("THis is the city : $city");
+                        // select the main city
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setString('selectedCity', city['name']);
+                        dbHelper.insertCity(city['name']);
 
-                      setState(() {
-                        _controller.text = '';
-                        _searchResults.clear();
-                      });
-                    },
-                  );
-                },
+                        setState(() {
+                          _controller.text = '';
+                          _searchResults.clear();
+                        });
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+              Container(child: Text('recommended cities')),
+              Container(
+                child: Row(
+                  children: [
+                    Column(children: [Text('Current position')]),
+                    Column(children: []),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
