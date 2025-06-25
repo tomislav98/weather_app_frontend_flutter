@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart' show Geolocator;
@@ -23,6 +25,13 @@ class _HomePageViewState extends State<HomePageView> {
   final dbHelper = DatabaseHelper();
   List<String> savedCities = [];
   late PageController _pageController;
+  late final String sunrise;
+  late final String sunset;
+  late final Float totalDuration;
+  late final Float elapsed;
+  late final Float progress;
+  final now = DateTime.now();
+  final formatDate = DateFormat("hh:mm a");
 
   Future<void> _showGpsDisableDialog(BuildContext context) async {
     bool? result = await showDialog<bool>(
@@ -134,15 +143,55 @@ class _HomePageViewState extends State<HomePageView> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        titleSpacing: 0,
         backgroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () => _showBottomMenu(context),
-            color: Colors.black, // Or any color you want for the icon
+        elevation: 0.0,
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          width: MediaQuery.of(context).size.width,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+            children: [
+              //Our profile image
+              CircleAvatar(
+                backgroundColor: Color(0xffE6E6E6),
+                radius: 20,
+                child: Icon(Icons.person, color: Color(0xffCCCCCC)),
+              ),
+              //our location dropdown
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.more_vert),
+                    onPressed: () => _showBottomMenu(context),
+                    color: Colors.black, // Or any color you want for the icon
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
+
+      //AppBar(
+      //   backgroundColor: Colors.white,
+      //   leading: CircleAvatar(
+      //     backgroundColor: Color(0xffE6E6E6),
+      //     radius: 30,
+      //     child: Icon(Icons.person, color: Color(0xffCCCCCC)),
+      //   ),
+      //   actions: [
+      //     IconButton(
+      //       icon: const Icon(Icons.more_vert),
+      //       onPressed: () => _showBottomMenu(context),
+      //       color: Colors.black, // Or any color you want for the icon
+      //     ),
+      //   ],
+      // ),
       body: Container(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -169,20 +218,22 @@ class _HomePageViewState extends State<HomePageView> {
                         }
 
                         final weather = snapshot.data!;
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Center(child: _mainTitleWeatherInfo(weather)),
-
-                              Center(child: _buildMainWeatherInfo(weather)),
-
-                              Center(child: _buildThreeIcons(weather)),
-
-                              _buildHourlyForecast(weather),
-                            ],
+                        return SingleChildScrollView(
+                          child: Container(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _mainTitleWeatherInfo(weather),
+                                SizedBox(height: 20),
+                                _buildMainWeatherInfo(weather),
+                                SizedBox(height: 20),
+                                _buildThreeIcons(weather),
+                                SizedBox(height: 20),
+                                _buildHourlyForecast(weather),
+                                //_sunsetAndSunrise(context, weather),
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -224,7 +275,6 @@ class _HomePageViewState extends State<HomePageView> {
   Widget _mainTitleWeatherInfo(Weather weather) {
     return Container(
       width: MediaQuery.of(context).size.width * 0.9,
-      height: MediaQuery.of(context).size.height * 0.07,
       alignment: Alignment.centerLeft,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -260,89 +310,85 @@ class _HomePageViewState extends State<HomePageView> {
   }
 
   Widget _buildMainWeatherInfo(Weather weather) {
-    return Column(
-      children: [
-        Container(
-          width: MediaQuery.sizeOf(context).width,
-          height: 200,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFF90CAF9), // light blue
-                Color(0xFF42A5F5), // medium blue
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(.5),
-                offset: const Offset(0, 25),
-                blurRadius: 10,
-                spreadRadius: -12,
-              ),
-            ],
+    return Container(
+      width: MediaQuery.sizeOf(context).width,
+      height: 200,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF90CAF9), // light blue
+            Color(0xFF42A5F5), // medium blue
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(.5),
+            offset: const Offset(0, 25),
+            blurRadius: 10,
+            spreadRadius: -12,
           ),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned(
-                top: -40,
-                left: 20,
-                child: Lottie.asset(
-                  getWeatherIconForCode(weather.conditionText),
-                  width: 150,
-                  height: 150,
-                ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            top: -40,
+            left: 20,
+            child: Lottie.asset(
+              getWeatherIconForCode(weather.conditionText),
+              width: 150,
+              height: 150,
+            ),
+          ),
+          Positioned(
+            bottom: 30,
+            left: 20,
+            child: Text(
+              weather.conditionText,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.normal,
+                color: Colors.white,
               ),
-              Positioned(
-                bottom: 30,
-                left: 20,
-                child: Text(
-                  weather.conditionText,
-                  style: const TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.normal,
-                    color: Colors.white,
+            ),
+          ),
+          Positioned(
+            top: 20,
+            right: 20,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    "${weather.currentTemperature}",
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 50,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
-              Positioned(
-                top: 20,
-                right: 20,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
-                      child: Text(
-                        "${weather.currentTemperature}",
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 50,
-                          fontWeight: FontWeight.normal,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      "°", // celsius
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 50,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                Text(
+                  "°", // celsius
+                  style: const TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 50,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -485,85 +531,222 @@ class _HomePageViewState extends State<HomePageView> {
   }
 
   Widget _buildHourlyForecast(Weather weather) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Title bar: you can also use Card here if you want elevation
-        Container(
-          width: MediaQuery.of(context).size.width * 0.9,
-          height: MediaQuery.of(context).size.height * 0.04,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Today',
-            style: const TextStyle(
-              fontFamily: 'Montserrat',
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.start,
-          ),
-        ),
-
-        //const SizedBox(height: 4),
-        Container(
-          width: double.infinity,
-          height: MediaQuery.of(context).size.height * 0.20,
-          padding: const EdgeInsets.all(16),
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: weather.hourly.length,
-            itemBuilder: (context, index) {
-              final hour = weather.hourly[index];
-              return Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.9,
+      height: 200,
+      child: Column(
+        children: [
+          // Title bar: you can also use Card here if you want elevation
+          Row(
+            children: [
+              Text(
+                'Today',
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                color: Colors.grey.shade200,
+                textAlign: TextAlign.start,
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
 
-                child: Container(
-                  width: 80,
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '${hour.dateTime.hour}:00',
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 15,
-                          fontWeight: FontWeight.normal,
-                          color: Colors.black87,
+          //const SizedBox(height: 4),
+          Row(
+            children: [
+              SizedBox(
+                height: 140, // <-- Or however tall your cards are
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: weather.hourly.length,
+                  itemBuilder: (context, index) {
+                    final hour = weather.hourly[index];
+                    return Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      color: Colors.grey.shade200,
+
+                      child: Container(
+                        width: 80,
+                        padding: const EdgeInsets.all(8),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '${hour.dateTime.hour}:00',
+                              style: const TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 15,
+                                fontWeight: FontWeight.normal,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: 50,
+                              height: 50,
+                              child: Lottie.asset(
+                                getWeatherIconForCode(hour.description),
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${hour.temperature}°C',
+                              style: const TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 15,
+                                fontWeight: FontWeight.normal,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: Lottie.asset(
-                          getWeatherIconForCode(hour.description),
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${hour.temperature}°C',
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 15,
-                          fontWeight: FontWeight.normal,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sunsetAndSunrise(BuildContext context, Weather weather) {
+    final format = DateFormat("hh:mm a"); // Formato tipo "06:15 AM"
+    DateTime today = DateTime.now();
+
+    final sunriseParsed = format.parse(weather.sunrise);
+    final sunsetParsed = format.parse(weather.sunset);
+
+    final sunriseTime = DateTime(
+      today.year,
+      today.month,
+      today.day,
+      sunriseParsed.hour,
+      sunriseParsed.minute,
+    );
+
+    final sunsetTime = DateTime(
+      today.year,
+      today.month,
+      today.day,
+      sunsetParsed.hour,
+      sunsetParsed.minute,
+    );
+
+    final totalDuration = sunsetTime.difference(sunriseTime).inSeconds;
+    final elapsed = now
+        .difference(sunriseTime)
+        .inSeconds
+        .clamp(0, totalDuration);
+    final progress = totalDuration == 0 ? 0.0 : elapsed / totalDuration;
+    double maxWidth = 300; // larghezza barra
+
+    //double progress = 0.5; // esempio
+
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.9,
+      height: MediaQuery.of(context).size.height * 0.1,
+      color: Colors.blue,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Text(
+                'Sunrise and sunset',
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.start,
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Barra base
+                  Container(
+                    width: maxWidth,
+                    height: 1,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                ),
-              );
-            },
+
+                  // Barra riempita
+                  Container(
+                    width: maxWidth * progress,
+                    height: 1,
+                    decoration: BoxDecoration(
+                      color: Colors.orangeAccent,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  Positioned(
+                    left: -24,
+                    top: -31,
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Lottie.asset(
+                        'assets/animations/weather-icons/lottie/sunrise.json',
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: maxWidth - 24,
+                    top: -31,
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Lottie.asset(
+                        'assets/animations/weather-icons/lottie/sunset.json',
+                      ),
+                    ),
+                  ),
+
+                  // Sole che si muove solo orizzontalmente
+                  Positioned(
+                    left:
+                        (maxWidth * progress).clamp(24.0, maxWidth - 24.0) - 24,
+                    top: -24,
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Lottie.asset(
+                        'assets/animations/weather-icons/lottie/clear-day.json',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ),
-      ],
+          SizedBox(height: 5),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(children: [Text(weather.sunrise)]),
+              Column(children: [Text(weather.sunset)]),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
