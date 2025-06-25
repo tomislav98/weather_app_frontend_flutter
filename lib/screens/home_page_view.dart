@@ -11,6 +11,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:weather_app/screens/radar_page_view.dart';
 import 'package:lottie/lottie.dart';
 import 'package:intl/intl.dart';
+import 'package:weather_app/screens/user_form_view.dart';
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -62,6 +63,22 @@ class _HomePageViewState extends State<HomePageView> {
       // You can navigate them to settings or give instructions
       _openLocationSettings();
     }
+  }
+
+  Future<void> _dialogBuilder(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          //title: const Text('Basic dialog title'),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            height: 380,
+            child: const UserFormView(),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -156,10 +173,23 @@ class _HomePageViewState extends State<HomePageView> {
 
             children: [
               //Our profile image
-              CircleAvatar(
-                backgroundColor: Color(0xffE6E6E6),
-                radius: 20,
-                child: Icon(Icons.person, color: Color(0xffCCCCCC)),
+              GestureDetector(
+                onTap: () {
+                  _dialogBuilder(context);
+                  // your widget here
+                },
+                child: CircleAvatar(
+                  backgroundColor: Color(0xffE6E6E6),
+                  radius: 20,
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/profile/avatar.jpg',
+                      fit: BoxFit.cover,
+                      width: 80, // match diameter
+                      height: 80,
+                    ),
+                  ),
+                ),
               ),
               //our location dropdown
               Row(
