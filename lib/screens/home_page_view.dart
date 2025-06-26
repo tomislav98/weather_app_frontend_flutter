@@ -12,6 +12,16 @@ import 'package:weather_app/screens/radar_page_view.dart';
 import 'package:lottie/lottie.dart';
 import 'package:intl/intl.dart';
 import 'package:weather_app/screens/user_form_view.dart';
+import 'package:flutter_weather_bg_null_safety/bg/weather_bg.dart';
+import 'package:flutter_weather_bg_null_safety/bg/weather_cloud_bg.dart';
+import 'package:flutter_weather_bg_null_safety/bg/weather_color_bg.dart';
+import 'package:flutter_weather_bg_null_safety/bg/weather_night_star_bg.dart';
+import 'package:flutter_weather_bg_null_safety/bg/weather_rain_snow_bg.dart';
+import 'package:flutter_weather_bg_null_safety/bg/weather_thunder_bg.dart';
+import 'package:flutter_weather_bg_null_safety/flutter_weather_bg.dart';
+import 'package:flutter_weather_bg_null_safety/utils/image_utils.dart';
+import 'package:flutter_weather_bg_null_safety/utils/print_utils.dart';
+import 'package:flutter_weather_bg_null_safety/utils/weather_type.dart';
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -20,7 +30,8 @@ class HomePageView extends StatefulWidget {
   State<HomePageView> createState() => _HomePageViewState();
 }
 
-class _HomePageViewState extends State<HomePageView> {
+class _HomePageViewState extends State<HomePageView>
+    with TickerProviderStateMixin {
   Future<Placemark>? manageGPS;
   late Future<void> locationServiceDialog;
   final dbHelper = DatabaseHelper();
@@ -28,9 +39,9 @@ class _HomePageViewState extends State<HomePageView> {
   late PageController _pageController;
   late final String sunrise;
   late final String sunset;
-  late final Float totalDuration;
-  late final Float elapsed;
-  late final Float progress;
+  late final double totalDuration;
+  late final double elapsed;
+  late final double progress;
   final now = DateTime.now();
   final formatDate = DateFormat("hh:mm a");
 
@@ -103,7 +114,10 @@ class _HomePageViewState extends State<HomePageView> {
 
   Future<void> initialize() async {
     final cities = await dbHelper.getAllCities();
-
+    // is checking if the widget is still "alive" before calling setState,
+    //  to avoid calling setState on a disposed widget, which would cause a runtime error.
+    // it's built in
+    if (!mounted) return;
     setState(() {
       savedCities = cities;
     });
@@ -165,6 +179,7 @@ class _HomePageViewState extends State<HomePageView> {
         titleSpacing: 0,
         backgroundColor: Colors.white,
         elevation: 0.0,
+
         title: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           width: MediaQuery.of(context).size.width,
@@ -248,6 +263,8 @@ class _HomePageViewState extends State<HomePageView> {
                         }
 
                         final weather = snapshot.data!;
+                        //print('🧪 Debug test: builder triggered');
+
                         return SingleChildScrollView(
                           child: Container(
                             padding: const EdgeInsets.only(bottom: 8.0),
@@ -340,12 +357,14 @@ class _HomePageViewState extends State<HomePageView> {
   }
 
   Widget _buildMainWeatherInfo(Weather weather) {
+    final width = MediaQuery.sizeOf(context).width;
+
     return Container(
-      width: MediaQuery.sizeOf(context).width,
+      width: width,
       height: 200,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
             Color(0xFF90CAF9), // light blue
             Color(0xFF42A5F5), // medium blue
@@ -362,62 +381,74 @@ class _HomePageViewState extends State<HomePageView> {
           ),
         ],
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            top: -40,
-            left: 20,
-            child: Lottie.asset(
-              getWeatherIconForCode(weather.conditionText),
-              width: 150,
-              height: 150,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            /// 🌦️ Weather background layer clipped inside rounded border
+            ///  one example WeatherType.lightRainy
+            WeatherBg(
+              weatherType: getWeatherBgType(weather.conditionText),
+              width: width,
+              height: 200,
             ),
-          ),
-          Positioned(
-            bottom: 30,
-            left: 20,
-            child: Text(
-              weather.conditionText,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.normal,
-                color: Colors.white,
+
+            // Positioned(
+            //   top: -40,
+            //   left: 20,
+            //   child: Lottie.asset(
+            //     getWeatherIconForCode(weather.conditionText),
+            //     width: 150,
+            //     height: 150,
+            //   ),
+            // ),
+            Positioned(
+              bottom: 30,
+              left: 20,
+              child: Text(
+                weather.conditionText,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: _getTextColor(weather.conditionText),
+                ),
               ),
             ),
-          ),
-          Positioned(
-            top: 20,
-            right: 20,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: Text(
-                    "${weather.currentTemperature}",
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 50,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.white,
+
+            Positioned(
+              top: 20,
+              right: 20,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      "${weather.currentTemperature}",
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 50,
+                        fontWeight: FontWeight.normal,
+                        color: _getTextColor(weather.conditionText),
+                      ),
                     ),
                   ),
-                ),
-                Text(
-                  "°", // celsius
-                  style: const TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 50,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  Text(
+                    "°", // celsius
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 50,
+                      fontWeight: FontWeight.bold,
+                      color: _getTextColor(weather.conditionText),
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -823,7 +854,9 @@ class _HomePageViewState extends State<HomePageView> {
 }
 
 final Map<String, String> weatherCodeToLottie = {
-  // ☀️ Clear / Sunny
+  /*
+    Remember that all condition.text taken from json are lowercased
+  */
 
   // 🌤️ Clouds / Fog / Haze
   "overcast": "assets/animations/weather-icons/lottie/overcast-haze.json",
@@ -925,7 +958,62 @@ final Map<String, String> weatherCodeToLottie = {
       "assets/animations/weather-icons/lottie/thunderstorms-overcast.json",
   "thunderstorms":
       "assets/animations/weather-icons/lottie/thunderstorms-overcast.json",
+  "patchy light rain in area with thunder":
+      "assets/animations/weather-icons/lottie/thunderstorms-day-overcast-rain.json",
 };
+
+WeatherType getWeatherBgType(String conditionText) {
+  final text = conditionText.toLowerCase();
+
+  if (text.contains("clear") || text == "sunny") {
+    return WeatherType.sunny;
+  } else if (text == "patchy light rain in area with thunder") {
+    return WeatherType.thunder;
+  } else if (text.contains("partly cloudy") || text.contains("cloudy")) {
+    return WeatherType.cloudy;
+  } else if (text.contains("overcast") ||
+      text.contains("fog") ||
+      text.contains("mist") ||
+      text.contains("haze")) {
+    return WeatherType.foggy;
+  } else if (text.contains("patchy light rain") ||
+      text.contains("light drizzle")) {
+    return WeatherType.lightRainy;
+  } else if (text.contains("light rain") || text.contains("patchy rain")) {
+    return WeatherType.middleRainy;
+  } else if (text.contains("moderate rain") ||
+      text.contains("heavy rain") ||
+      text.contains("torrential rain")) {
+    return WeatherType.heavyRainy;
+  } else if (text.contains("light snow") || text.contains("patchy snow")) {
+    return WeatherType.lightSnow;
+  } else if (text.contains("moderate snow")) {
+    return WeatherType.middleSnow;
+  } else if (text.contains("heavy snow") || text.contains("blowing snow")) {
+    return WeatherType.heavySnow;
+  } else if (text.contains("sleet") || text.contains("ice pellets")) {
+    return WeatherType.middleSnow;
+  } else if (text.contains("thunder") ||
+      text.contains("thunderstorms") ||
+      text.contains("thundery")) {
+    return WeatherType.thunder;
+  } else if (text.contains("dust") || text.contains("sand")) {
+    return WeatherType.dusty;
+  } else {
+    // Fallback if no known type matches
+    return WeatherType.sunny;
+  }
+}
+
+Color _getTextColor(String conditionText) {
+  final weatherType = getWeatherBgType(conditionText);
+  print("This is the weather type: $weatherType");
+  if (weatherType == WeatherType.sunny || weatherType == WeatherType.cloudy) {
+    return Colors.black;
+  } else {
+    return Colors.white;
+  }
+}
 
 // final Map<int, String> weatherCodeToLottie = {
 //   // ☀️ Clear / Sunny

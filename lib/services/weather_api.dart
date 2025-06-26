@@ -4,6 +4,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/weather.dart';
 import 'package:weather_app/config.dart' show WEATHER_API_KEY;
 import 'package:weather_app/utils/logger.dart';
+import 'dart:io';
+
+Future<void> logWeatherData(String responseBody) async {
+  final data = jsonDecode(responseBody) as Map<String, dynamic>;
+  final logEntry = 'weather_data: ${jsonEncode(data)}\n';
+
+  final logFile = File('weather_log.txt');
+  await logFile.writeAsString(logEntry, mode: FileMode.append);
+}
 
 Future<Weather> fetchWeatherData(String city) async {
   //appLogger.i('Fetching weather data for $city');
@@ -16,7 +25,6 @@ Future<Weather> fetchWeatherData(String city) async {
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     final formattedJson = const JsonEncoder.withIndent('  ').convert(data);
-
     //appLogger.i('Weather API response:\n$formattedJson');
     return Weather.fromJson(data);
   } else {
