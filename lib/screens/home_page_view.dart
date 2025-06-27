@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart' show Geolocator;
@@ -11,17 +9,11 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:weather_app/screens/radar_page_view.dart';
 import 'package:lottie/lottie.dart';
 import 'package:intl/intl.dart';
+import '../widgets/flippable_hourly_card.dart';
+
+import '../utils/weather_icon_mapper.dart';
 import 'package:weather_app/screens/user_form_view.dart';
-import 'package:flutter_weather_bg_null_safety/bg/weather_bg.dart';
-import 'package:flutter_weather_bg_null_safety/bg/weather_cloud_bg.dart';
-import 'package:flutter_weather_bg_null_safety/bg/weather_color_bg.dart';
-import 'package:flutter_weather_bg_null_safety/bg/weather_night_star_bg.dart';
-import 'package:flutter_weather_bg_null_safety/bg/weather_rain_snow_bg.dart';
-import 'package:flutter_weather_bg_null_safety/bg/weather_thunder_bg.dart';
 import 'package:flutter_weather_bg_null_safety/flutter_weather_bg.dart';
-import 'package:flutter_weather_bg_null_safety/utils/image_utils.dart';
-import 'package:flutter_weather_bg_null_safety/utils/print_utils.dart';
-import 'package:flutter_weather_bg_null_safety/utils/weather_type.dart';
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -272,11 +264,11 @@ class _HomePageViewState extends State<HomePageView>
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
                                 _mainTitleWeatherInfo(weather),
-                                SizedBox(height: 20),
+                                SizedBox(height: 10),
                                 _buildMainWeatherInfo(weather),
-                                SizedBox(height: 20),
+                                SizedBox(height: 10),
                                 _buildThreeIcons(weather),
-                                SizedBox(height: 20),
+                                SizedBox(height: 10),
                                 _buildHourlyForecast(weather),
                                 //_sunsetAndSunrise(context, weather),
                               ],
@@ -361,7 +353,6 @@ class _HomePageViewState extends State<HomePageView>
 
     return Container(
       width: width,
-      height: 200,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         gradient: const LinearGradient(
@@ -592,88 +583,32 @@ class _HomePageViewState extends State<HomePageView>
   }
 
   Widget _buildHourlyForecast(Weather weather) {
+    final width = MediaQuery.of(context).size.width * 0.9;
+
     return Container(
-      width: MediaQuery.of(context).size.width * 0.9,
+      width: width,
       height: 200,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title bar: you can also use Card here if you want elevation
-          Row(
-            children: [
-              Text(
-                'Today',
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.start,
-              ),
-            ],
+          // Title bar
+          Text(
+            'Today',
+            style: const TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.start,
           ),
-          SizedBox(height: 20),
 
-          //const SizedBox(height: 4),
-          Row(
-            children: [
-              SizedBox(
-                height: 140, // <-- Or however tall your cards are
-                width: MediaQuery.of(context).size.width * 0.9,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: weather.hourly.length,
-                  itemBuilder: (context, index) {
-                    final hour = weather.hourly[index];
-                    return Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                      color: Colors.grey.shade200,
+          const SizedBox(height: 20),
 
-                      child: Container(
-                        width: 80,
-                        padding: const EdgeInsets.all(8),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '${hour.dateTime.hour}:00',
-                              style: const TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 15,
-                                fontWeight: FontWeight.normal,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              width: 50,
-                              height: 50,
-                              child: Lottie.asset(
-                                getWeatherIconForCode(hour.description),
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${hour.temperature}°C',
-                              style: const TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 15,
-                                fontWeight: FontWeight.normal,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+          // Hourly forecast cards row
+          SizedBox(
+            height: 140,
+            width: width,
+            child: FlippableHourlyCard(hour: weather.hourly),
           ),
         ],
       ),
@@ -853,158 +788,6 @@ class _HomePageViewState extends State<HomePageView>
   }
 }
 
-final Map<String, String> weatherCodeToLottie = {
-  /*
-    Remember that all condition.text taken from json are lowercased
-  */
-
-  // 🌤️ Clouds / Fog / Haze
-  "overcast": "assets/animations/weather-icons/lottie/overcast-haze.json",
-
-  "freezing fog":
-      "assets/animations/weather-icons/lottie/overcast-day-smoke.json",
-
-  // 🌧️ Rain
-  "patchy light rain":
-      "assets/animations/weather-icons/lottie/overcast-drizzle.json",
-
-  "torrential rain shower":
-      "assets/animations/weather-icons/lottie/thunderstorms-day-overcast-rain.json",
-
-  // ❄️ Snow
-  "patchy light snow":
-      "assets/animations/weather-icons/lottie/overcast-day-snow.json",
-  "light snow": "assets/animations/weather-icons/lottie/overcast-day-snow.json",
-  "moderate snow":
-      "assets/animations/weather-icons/lottie/overcast-night-snow.json",
-  "heavy snow":
-      "assets/animations/weather-icons/lottie/overcast-night-overcast-snow.json",
-  "blowing snow":
-      "assets/animations/weather-icons/lottie/thunderstorms-night-overcast-snow.json",
-
-  // 🌨️ Sleet
-  "patchy sleet possible":
-      "assets/animations/weather-icons/lottie/overcast-sleet.json",
-  "light sleet":
-      "assets/animations/weather-icons/lottie/overcast-day-sleet.json",
-  "moderate or heavy sleet":
-      "assets/animations/weather-icons/lottie/overcast-night-sleet.json",
-
-  // 🌩️ Thunderstorms
-  "moderate or heavy rain with thunder":
-      "assets/animations/weather-icons/lottie/thunderstorms-overcast-rain.json",
-  "patchy light rain with thunder":
-      "assets/animations/weather-icons/lottie/thunderstorms-day-overcast-rain.json",
-  "patchy light snow with thunder":
-      "assets/animations/weather-icons/lottie/thunderstorms-day-overcast-snow.json",
-  "moderate or heavy snow with thunder":
-      "assets/animations/weather-icons/lottie/thunderstorms-night-overcast-snow.json",
-
-  // 🧊 Hail / Ice
-  "ice pellets":
-      "assets/animations/weather-icons/lottie/overcast-day-hail.json",
-  "light showers of ice pellets":
-      "assets/animations/weather-icons/lottie/overcast-night-hail.json",
-  "moderate or heavy showers of ice pellets":
-      "assets/animations/weather-icons/lottie/overcast-hail.json",
-
-  // 🌫️ Smoke / Dust
-  "sandstorm":
-      "assets/animations/weather-icons/lottie/overcast-night-smoke.json",
-
-  // 🌈 Special
-  "rainbow": "assets/animations/weather-icons/lottie/rainbow.json",
-  "rainbow with sun":
-      "assets/animations/weather-icons/lottie/rainbow-clear.json",
-
-  "sunny": "assets/animations/weather-icons/lottie/clear-day.json",
-  "clear": "assets/animations/weather-icons/lottie/clear-night.json",
-  "cloudy": "assets/animations/weather-icons/lottie/cloudy.json",
-
-  "partly cloudy":
-      "assets/animations/weather-icons/lottie/partly-cloudy-day.json",
-  "partly cloudy night":
-      "assets/animations/weather-icons/lottie/partly-cloudy-night.json",
-  "partly cloudy day":
-      "assets/animations/weather-icons/lottie/partly-cloudy-day.json",
-  "light rain": "assets/animations/weather-icons/lottie/rain.json",
-  "moderate rain": "assets/animations/weather-icons/lottie/rain.json",
-  "heavy rain": "assets/animations/weather-icons/lottie/rain.json",
-  "patchy rain possible":
-      "assets/animations/weather-icons/lottie/partly-cloudy-day-rain.json",
-  "patchy rain nearby":
-      "assets/animations/weather-icons/lottie/partly-cloudy-day-rain.json",
-  "light drizzle": "assets/animations/weather-icons/lottie/drizzle.json",
-  "patchy drizzle possible":
-      "assets/animations/weather-icons/lottie/partly-cloudy-day-drizzle.json",
-  "hail": "assets/animations/weather-icons/lottie/hail.json",
-  "sleet":
-      "assets/animations/weather-icons/lottie/partly-cloudy-day-sleet.json",
-  "snow": "assets/animations/weather-icons/lottie/snow.json",
-  "patchy snow possible":
-      "assets/animations/weather-icons/lottie/partly-cloudy-day-snow.json",
-  "smoke": "assets/animations/weather-icons/lottie/smoke.json",
-  "mist": "assets/animations/weather-icons/lottie/mist.json",
-  "fog": "assets/animations/weather-icons/lottie/mist.json",
-  "dust": "assets/animations/weather-icons/lottie/dust.json",
-  "dusty": "assets/animations/weather-icons/lottie/dust.json",
-  "dust day": "assets/animations/weather-icons/lottie/dust-day.json",
-  "dust night": "assets/animations/weather-icons/lottie/dust-night.json",
-  "dust wind": "assets/animations/weather-icons/lottie/dust-wind.json",
-  "windy": "assets/animations/weather-icons/lottie/wind.json",
-  "tornado": "assets/animations/weather-icons/lottie/tornado.json",
-  "hurricane": "assets/animations/weather-icons/lottie/hurricane.json",
-  "thundery outbreaks possible":
-      "assets/animations/weather-icons/lottie/thunderstorms-overcast.json",
-  "thunderstorms":
-      "assets/animations/weather-icons/lottie/thunderstorms-overcast.json",
-  "patchy light rain in area with thunder":
-      "assets/animations/weather-icons/lottie/thunderstorms-day-overcast-rain.json",
-};
-
-WeatherType getWeatherBgType(String conditionText) {
-  final text = conditionText.toLowerCase();
-
-  if (text.contains("clear") || text == "sunny") {
-    return WeatherType.sunny;
-  } else if (text == "patchy light rain in area with thunder") {
-    return WeatherType.thunder;
-  } else if (text.contains("partly cloudy") || text.contains("cloudy")) {
-    return WeatherType.cloudy;
-  } else if (text.contains("overcast") ||
-      text.contains("fog") ||
-      text.contains("mist") ||
-      text.contains("haze")) {
-    return WeatherType.foggy;
-  } else if (text.contains("patchy light rain") ||
-      text.contains("light drizzle")) {
-    return WeatherType.lightRainy;
-  } else if (text.contains("light rain") || text.contains("patchy rain")) {
-    return WeatherType.middleRainy;
-  } else if (text.contains("moderate rain") ||
-      text.contains("heavy rain") ||
-      text.contains("torrential rain")) {
-    return WeatherType.heavyRainy;
-  } else if (text.contains("light snow") || text.contains("patchy snow")) {
-    return WeatherType.lightSnow;
-  } else if (text.contains("moderate snow")) {
-    return WeatherType.middleSnow;
-  } else if (text.contains("heavy snow") || text.contains("blowing snow")) {
-    return WeatherType.heavySnow;
-  } else if (text.contains("sleet") || text.contains("ice pellets")) {
-    return WeatherType.middleSnow;
-  } else if (text.contains("thunder") ||
-      text.contains("thunderstorms") ||
-      text.contains("thundery")) {
-    return WeatherType.thunder;
-  } else if (text.contains("dust") || text.contains("sand")) {
-    return WeatherType.dusty;
-  } else {
-    // Fallback if no known type matches
-    return WeatherType.sunny;
-  }
-}
-
 Color _getTextColor(String conditionText) {
   final weatherType = getWeatherBgType(conditionText);
   print("This is the weather type: $weatherType");
@@ -1014,80 +797,6 @@ Color _getTextColor(String conditionText) {
     return Colors.white;
   }
 }
-
-// final Map<int, String> weatherCodeToLottie = {
-//   // ☀️ Clear / Sunny
-//   1000: 'assets/animations/weather-icons/lottie/clear-day.json',
-
-//   // 🌤️ Partly Cloudy
-//   1003: 'assets/animations/weather-icons/lottie/partly-cloudy-day.json',
-//   1006: 'assets/animations/weather-icons/lottie/cloudy.json',
-//   1009: 'assets/animations/weather-icons/lottie/overcast.json',
-
-//   // 🌫️ Mist / Fog / Haze
-//   1030: 'assets/animations/weather-icons/lottie/mist.json',
-//   1135: 'assets/animations/weather-icons/lottie/fog.json',
-//   1147: 'assets/animations/weather-icons/lottie/fog.json',
-//   1430: 'assets/animations/weather-icons/lottie/haze.json',
-
-//   // 🌧️ Drizzle
-//   1150: 'assets/animations/weather-icons/lottie/drizzle.json',
-//   1153: 'assets/animations/weather-icons/lottie/drizzle.json',
-//   1168:
-//       'assets/animations/weather-icons/lottie/drizzle.json', // freezing drizzle
-//   1171: 'assets/animations/weather-icons/lottie/drizzle.json',
-
-//   // 🌧️ Rain
-//   1180: 'assets/animations/weather-icons/lottie/rain.json',
-//   1183: 'assets/animations/weather-icons/lottie/rain.json',
-//   1186: 'assets/animations/weather-icons/lottie/rain.json',
-//   1189: 'assets/animations/weather-icons/lottie/rain.json',
-//   1192: 'assets/animations/weather-icons/lottie/overcast-rain.json',
-//   1195: 'assets/animations/weather-icons/lottie/overcast-rain.json',
-//   1198: 'assets/animations/weather-icons/lottie/rain.json', // freezing rain
-//   1201:
-//       'assets/animations/weather-icons/lottie/rain.json', // heavy freezing rain
-//   // 🌨️ Sleet (ice pellets)
-//   1204: 'assets/animations/weather-icons/lottie/sleet.json',
-//   1207: 'assets/animations/weather-icons/lottie/sleet.json',
-
-//   // ❄️ Snow
-//   1210: 'assets/animations/weather-icons/lottie/snow.json',
-//   1213: 'assets/animations/weather-icons/lottie/snow.json',
-//   1216: 'assets/animations/weather-icons/lottie/snow.json',
-//   1219: 'assets/animations/weather-icons/lottie/snow.json',
-//   1222: 'assets/animations/weather-icons/lottie/snow.json',
-//   1225: 'assets/animations/weather-icons/lottie/snow.json',
-
-//   // 🌨️ Ice pellets / Hail
-//   1237: 'assets/animations/weather-icons/lottie/hail.json',
-
-//   // 🌦️ Light rain showers
-//   1240: 'assets/animations/weather-icons/lottie/rain.json',
-//   1243: 'assets/animations/weather-icons/lottie/rain.json',
-//   1246: 'assets/animations/weather-icons/lottie/overcast-rain.json',
-
-//   // 🌨️ Snow showers
-//   1249: 'assets/animations/weather-icons/lottie/snow.json',
-//   1252: 'assets/animations/weather-icons/lottie/snow.json',
-//   1255: 'assets/animations/weather-icons/lottie/snow.json',
-//   1258: 'assets/animations/weather-icons/lottie/overcast-snow.json',
-
-//   // 🧊 Ice pellets showers / Hail
-//   1261: 'assets/animations/weather-icons/lottie/hail.json',
-//   1264: 'assets/animations/weather-icons/lottie/hail.json',
-
-//   // 🌩️ Thunderstorm (no precipitation)
-//   1273: 'assets/animations/weather-icons/lottie/thunderstorms.json',
-//   1276: 'assets/animations/weather-icons/lottie/thunderstorms.json',
-
-//   // 🌩️ Thunderstorm with snow
-//   1279: 'assets/animations/weather-icons/lottie/thunderstorms-snow.json',
-//   1282: 'assets/animations/weather-icons/lottie/thunderstorms-snow.json',
-
-//   // 🌪️ Tornado / hurricane fallback (if needed)
-//   9000: 'assets/animations/weather-icons/lottie/hurricane.json',
-// };
 
 String getWeatherIconForCode(String condition) {
   return weatherCodeToLottie[condition] ??

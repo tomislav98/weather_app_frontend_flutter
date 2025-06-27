@@ -4,12 +4,14 @@ class HourlyWeather {
   final String description;
   final String icon;
   final int code;
+  final int chanceOfRain;
   HourlyWeather({
     required this.dateTime,
     required this.temperature,
     required this.description,
     required this.icon,
     required this.code,
+    required this.chanceOfRain,
   });
 
   factory HourlyWeather.fromJson(Map<String, dynamic> json) {
@@ -21,6 +23,7 @@ class HourlyWeather {
       description: json['condition']['text'].toString().trim().toLowerCase(),
       icon: json['condition']['icon'],
       code: json['condition']['code'],
+      chanceOfRain: json['chance_of_rain'] as int,
     );
   }
 }
