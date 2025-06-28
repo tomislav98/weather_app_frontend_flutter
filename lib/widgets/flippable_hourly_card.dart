@@ -63,14 +63,17 @@ class _FlippableHourlyCardState extends State<FlippableHourlyCard> {
               borderRadius: BorderRadius.circular(12),
             ),
             margin: const EdgeInsets.symmetric(horizontal: 8),
-            color: Colors.grey.shade200,
+            color: Theme.of(context).cardColor,
             child: Container(
               width: 80,
               padding: const EdgeInsets.all(8),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('${hour.dateTime.hour}:00', style: _hourStyle),
+                  Text(
+                    '${hour.dateTime.hour}:00',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
                   const SizedBox(height: 8),
                   SizedBox(
                     width: 50,
@@ -81,7 +84,10 @@ class _FlippableHourlyCardState extends State<FlippableHourlyCard> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text('${hour.temperature}°C', style: _hourStyle),
+                  Text(
+                    '${hour.temperature}°C',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
                 ],
               ),
             ),
@@ -106,14 +112,17 @@ class _FlippableHourlyCardState extends State<FlippableHourlyCard> {
               borderRadius: BorderRadius.circular(12),
             ),
             margin: const EdgeInsets.symmetric(horizontal: 8),
-            color: Colors.grey.shade200,
+            color: Theme.of(context).cardColor,
             child: Container(
               width: 80,
               padding: const EdgeInsets.all(8),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('${hour.dateTime.hour}:00', style: _hourStyle),
+                  Text(
+                    '${hour.dateTime.hour}:00',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
                   const SizedBox(height: 8),
                   SizedBox(
                     width: 50,
@@ -124,7 +133,10 @@ class _FlippableHourlyCardState extends State<FlippableHourlyCard> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text('${hour.chanceOfRain}%', style: _hourStyle),
+                  Text(
+                    '${hour.chanceOfRain}%',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
                 ],
               ),
             ),

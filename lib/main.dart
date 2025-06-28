@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/home_page_view.dart';
 import 'utils/logger.dart';
+import 'package:provider/provider.dart';
+import 'theme_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   await initLogger(); // Initialize file logger
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -17,25 +24,79 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       title: 'Weather App',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+
+      themeMode: themeProvider.themeMode,
+      theme: ThemeData.light().copyWith(
+        // WHITE THEME
+        scaffoldBackgroundColor: Colors.white,
+        textTheme: TextTheme(
+          titleLarge: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+          titleMedium: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+
+          labelMedium: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 12,
+            color: Colors.black, // or Colors.grey.shade600
+            fontWeight: FontWeight.w400,
+          ),
+          labelLarge: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 14,
+            color: Colors.black, // or Colors.grey.shade600
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        cardColor: Colors.grey.shade200,
+        colorScheme: ColorScheme.light(),
+      ),
+      darkTheme: ThemeData.dark().copyWith(
+        // DARK THEME
+        scaffoldBackgroundColor: const Color(
+          0xFF2C3E50,
+        ), // Indigo-like dark blue
+        textTheme: const TextTheme(
+          titleLarge: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+          titleMedium: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+          labelLarge: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 14,
+            color: Colors.white70,
+            fontWeight: FontWeight.w400,
+          ),
+          labelMedium: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 12,
+            color: Colors.white60,
+            fontWeight: FontWeight.w400,
+          ),
+
+          // const Color(0xFF3E4A59)
+        ),
+        cardColor: const Color(0xFF3E4A59),
+        colorScheme: ColorScheme.dark(onPrimary: Colors.white),
       ),
       home: HomePageView(),
     );

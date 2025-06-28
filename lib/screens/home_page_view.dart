@@ -11,9 +11,11 @@ import 'package:lottie/lottie.dart';
 import 'package:intl/intl.dart';
 import '../widgets/flippable_hourly_card.dart';
 
+import 'package:provider/provider.dart';
 import '../utils/weather_icon_mapper.dart';
 import 'package:weather_app/screens/user_form_view.dart';
 import 'package:flutter_weather_bg_null_safety/flutter_weather_bg.dart';
+import 'package:weather_app/theme_provider.dart';
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -163,13 +165,15 @@ class _HomePageViewState extends State<HomePageView>
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.themeMode == ThemeMode.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         centerTitle: false,
         titleSpacing: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0.0,
 
         title: Container(
@@ -202,10 +206,20 @@ class _HomePageViewState extends State<HomePageView>
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  Switch(
+                    value: isDark,
+                    onChanged: (value) {
+                      themeProvider.toggleTheme(value);
+                    },
+                    activeColor: Colors.blue, // customize colors if you want
+                  ),
                   IconButton(
                     icon: const Icon(Icons.more_vert),
                     onPressed: () => _showBottomMenu(context),
-                    color: Colors.black, // Or any color you want for the icon
+                    color:
+                        Theme.of(context)
+                            .colorScheme
+                            .onSurface, // Or any color you want for the icon
                   ),
                 ],
               ),
@@ -324,22 +338,14 @@ class _HomePageViewState extends State<HomePageView>
             children: [
               Text(
                 weather.locationName,
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(context).textTheme.titleLarge,
                 textAlign: TextAlign.start,
               ),
               Text(
                 DateFormat(
                   'EEEE, d MMMM',
                 ).format(DateTime.now()), // Example: Monday, 17 June
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  color: Colors.grey, // or Colors.grey.shade600
-                  fontWeight: FontWeight.normal,
-                ),
+                style: Theme.of(context).textTheme.labelMedium,
               ),
             ],
           ),
@@ -355,14 +361,7 @@ class _HomePageViewState extends State<HomePageView>
       width: width,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF90CAF9), // light blue
-            Color(0xFF42A5F5), // medium blue
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(.5),
@@ -457,19 +456,14 @@ class _HomePageViewState extends State<HomePageView>
             children: [
               Text(
                 'Wind Speed',
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 10,
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black,
-                ),
+                style: Theme.of(context).textTheme.labelLarge,
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 5),
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  color: Colors.grey.shade200,
+                  color: Theme.of(context).cardColor,
                 ),
                 child: SizedBox(
                   width: 50,
@@ -485,11 +479,7 @@ class _HomePageViewState extends State<HomePageView>
               SizedBox(height: 5),
               Text(
                 '${weather.windSpeed} km/h',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(context).textTheme.labelLarge,
                 textAlign: TextAlign.center,
               ),
             ],
@@ -500,18 +490,14 @@ class _HomePageViewState extends State<HomePageView>
             children: [
               Text(
                 'Humidity',
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 10,
-                  fontWeight: FontWeight.normal,
-                ),
+                style: Theme.of(context).textTheme.labelLarge,
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 5),
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  color: Colors.grey.shade200,
+                  color: Theme.of(context).cardColor,
                 ),
                 child: SizedBox(
                   width: 50,
@@ -526,12 +512,8 @@ class _HomePageViewState extends State<HomePageView>
               ),
               SizedBox(height: 5),
               Text(
-                '${weather.humidity}',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
+                '${weather.humidity}%',
+                style: Theme.of(context).textTheme.labelLarge,
                 textAlign: TextAlign.start,
               ),
             ],
@@ -542,18 +524,14 @@ class _HomePageViewState extends State<HomePageView>
             children: [
               Text(
                 'Max temp',
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 10,
-                  fontWeight: FontWeight.normal,
-                ),
+                style: Theme.of(context).textTheme.labelLarge,
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 5),
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  color: Colors.grey.shade200,
+                  color: Theme.of(context).cardColor,
                 ),
                 child: SizedBox(
                   width: 50,
@@ -568,11 +546,7 @@ class _HomePageViewState extends State<HomePageView>
               SizedBox(height: 5),
               Text(
                 '${weather.maxTempC} °C',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(context).textTheme.labelLarge,
                 textAlign: TextAlign.start,
               ),
             ],
@@ -594,11 +568,7 @@ class _HomePageViewState extends State<HomePageView>
           // Title bar
           Text(
             'Today',
-            style: const TextStyle(
-              fontFamily: 'Montserrat',
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.start,
           ),
 

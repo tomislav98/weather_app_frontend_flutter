@@ -7,3 +7,100 @@ flutter run
 2) Eseguire la shell per vedere i logs
 adb shell
 run-as com.example.weather_app e poi vado in app_flutter
+
+
+
+
+
+
+
+To manage switching between dark and light themes in a Flutter app, the most flexible and maintainable approach is using a combination of:
+
+A ThemeMode setting (system, light, dark)
+
+ThemeData for both light and dark themes
+
+A state management solution (Provider, Riverpod, Cubit, or even a simple setState for small apps)
+
+✅ Minimal Example (with ChangeNotifier)
+Step 1: Create a ThemeProvider
+dart
+Copy
+Edit
+import 'package:flutter/material.dart';
+
+class ThemeProvider with ChangeNotifier {
+  ThemeMode _themeMode = ThemeMode.system;
+
+  ThemeMode get themeMode => _themeMode;
+
+  void toggleTheme(bool isDark) {
+    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+    notifyListeners();
+  }
+}
+Step 2: In main.dart
+dart
+Copy
+Edit
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    return MaterialApp(
+      title: 'Theme Switch Demo',
+      themeMode: themeProvider.themeMode,
+      theme: ThemeData.light().copyWith(
+        // You can customize further here
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      darkTheme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
+      ),
+      home: const HomeScreen(),
+    );
+  }
+}
+Step 3: Add a Switch in UI
+dart
+Copy
+Edit
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.themeMode == ThemeMode.dark;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Theme Switch'),
+        actions: [
+          Switch(
+            value: isDark,
+            onChanged: (value) => themeProvider.toggleTheme(value),
+          ),
+        ],
+      ),
+      body: const Center(
+        child: Text('Toggle theme using the switch above'),
+      ),
+    );
+  }
+}
