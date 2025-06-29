@@ -14,6 +14,7 @@ run-as com.example.weather_app e poi vado in app_flutter
 
 
 
+
 To manage switching between dark and light themes in a Flutter app, the most flexible and maintainable approach is using a combination of:
 
 A ThemeMode setting (system, light, dark)
