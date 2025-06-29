@@ -3,6 +3,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:weather_app/db/sqflite_db.dart';
 import 'package:weather_app/screens/city_selection_view.dart';
+import 'package:weather_app/widgets/sign_up_widget.dart';
 import '../models/weather.dart';
 import '../services/weather_api.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -10,12 +11,126 @@ import 'package:weather_app/screens/radar_page_view.dart';
 import 'package:lottie/lottie.dart';
 import 'package:intl/intl.dart';
 import '../widgets/flippable_hourly_card.dart';
-
+import '../services/auth_service.dart';
 import 'package:provider/provider.dart';
 import '../utils/weather_icon_mapper.dart';
 import 'package:weather_app/screens/user_form_view.dart';
 import 'package:flutter_weather_bg_null_safety/flutter_weather_bg.dart';
 import 'package:weather_app/theme_provider.dart';
+import 'package:http/http.dart' as http;
+
+Future<void> callNotifyApi() async {
+  //127.0.0.1 inside Flutter = Flutter emulator/device
+
+  // 127.0.0.1 on your PC = your FastAPI server
+  // 10.0.2.2 is a special alias that routes to your host machine from the emulator.
+  final url = Uri.http('10.0.2.2:8000', '/notify');
+
+  final response = await http.post(url);
+
+  if (response.statusCode == 200) {
+    print('API called successfully');
+  } else {
+    print('Failed to call API: ${response.statusCode}');
+  }
+}
+
+Widget buildAppDrawer(BuildContext context, bool isSignedIn) {
+  final authService = AuthService();
+  final user = authService.getCurrentUser;
+  return Drawer(
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    child: ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        DrawerHeader(
+          decoration: BoxDecoration(color: Color(0xFF34495E)),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: Color(0xffE6E6E6),
+                radius: 40,
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/profile/avatar.jpg',
+                    fit: BoxFit.cover,
+                    width: 80,
+                    height: 80,
+                  ),
+                ),
+              ),
+              SizedBox(width: 16),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user != null
+                        ? (user.displayName ?? 'User name')
+                        : 'Profile',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  GestureDetector(
+                    onTap:
+                        isSignedIn
+                            ? null
+                            : () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const SignUpWidget(),
+                                ),
+                              );
+                            },
+                    child: Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white70,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        ListTile(
+          leading: Lottie.asset(
+            'assets/animations/weather-icons/lottie/compass.json',
+            fit: BoxFit.contain,
+            alignment: Alignment.center,
+          ),
+          title: const Text('Select City'),
+          onTap: () {
+            // Your select city logic
+          },
+        ),
+        ListTile(
+          leading: Lottie.asset(
+            'assets/animations/weather-icons/lottie/lightning-bolt.json',
+            fit: BoxFit.contain,
+            alignment: Alignment.center,
+          ),
+          title: const Text('Set Alert system'),
+          onTap:
+              user != null
+                  ? () async {
+                    await callNotifyApi();
+                  }
+                  : null,
+          enabled: user != null,
+        ),
+      ],
+    ),
+  );
+}
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -167,6 +282,7 @@ class _HomePageViewState extends State<HomePageView>
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.themeMode == ThemeMode.dark;
+    bool isSignedIn = false;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -184,23 +300,29 @@ class _HomePageViewState extends State<HomePageView>
 
             children: [
               //Our profile image
-              GestureDetector(
-                onTap: () {
-                  _dialogBuilder(context);
-                  // your widget here
-                },
-                child: CircleAvatar(
-                  backgroundColor: Color(0xffE6E6E6),
-                  radius: 20,
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/profile/avatar.jpg',
-                      fit: BoxFit.cover,
-                      width: 80, // match diameter
-                      height: 80,
+              Builder(
+                builder:
+                    (context) => GestureDetector(
+                      onTap: () {
+                        // Open drawer if signed up
+                        Scaffold.of(context).openDrawer();
+
+                        // Show signup dialog
+                        //_dialogBuilder(context);
+                      },
+                      child: CircleAvatar(
+                        backgroundColor: Color(0xffE6E6E6),
+                        radius: 20,
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/profile/avatar.jpg',
+                            fit: BoxFit.cover,
+                            width: 80,
+                            height: 80,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
               ),
               //our location dropdown
               Row(
@@ -227,6 +349,7 @@ class _HomePageViewState extends State<HomePageView>
           ),
         ),
       ),
+      drawer: buildAppDrawer(context, isSignedIn),
 
       //AppBar(
       //   backgroundColor: Colors.white,
