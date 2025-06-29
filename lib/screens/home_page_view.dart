@@ -3,7 +3,6 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:weather_app/db/sqflite_db.dart';
 import 'package:weather_app/screens/city_selection_view.dart';
-import 'package:weather_app/widgets/sign_up_widget.dart';
 import '../models/weather.dart';
 import '../services/weather_api.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -11,126 +10,13 @@ import 'package:weather_app/screens/radar_page_view.dart';
 import 'package:lottie/lottie.dart';
 import 'package:intl/intl.dart';
 import '../widgets/flippable_hourly_card.dart';
-import '../services/auth_service.dart';
 import 'package:provider/provider.dart';
 import '../utils/weather_icon_mapper.dart';
 import 'package:weather_app/screens/user_form_view.dart';
 import 'package:flutter_weather_bg_null_safety/flutter_weather_bg.dart';
 import 'package:weather_app/theme_provider.dart';
-import 'package:http/http.dart' as http;
-
-Future<void> callNotifyApi() async {
-  //127.0.0.1 inside Flutter = Flutter emulator/device
-
-  // 127.0.0.1 on your PC = your FastAPI server
-  // 10.0.2.2 is a special alias that routes to your host machine from the emulator.
-  final url = Uri.http('10.0.2.2:8000', '/notify');
-
-  final response = await http.post(url);
-
-  if (response.statusCode == 200) {
-    print('API called successfully');
-  } else {
-    print('Failed to call API: ${response.statusCode}');
-  }
-}
-
-Widget buildAppDrawer(BuildContext context, bool isSignedIn) {
-  final authService = AuthService();
-  final user = authService.getCurrentUser;
-  return Drawer(
-    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-    child: ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        DrawerHeader(
-          decoration: BoxDecoration(color: Color(0xFF34495E)),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: Color(0xffE6E6E6),
-                radius: 40,
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/profile/avatar.jpg',
-                    fit: BoxFit.cover,
-                    width: 80,
-                    height: 80,
-                  ),
-                ),
-              ),
-              SizedBox(width: 16),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user != null
-                        ? (user.displayName ?? 'User name')
-                        : 'Profile',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  GestureDetector(
-                    onTap:
-                        isSignedIn
-                            ? null
-                            : () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const SignUpWidget(),
-                                ),
-                              );
-                            },
-                    child: Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        ListTile(
-          leading: Lottie.asset(
-            'assets/animations/weather-icons/lottie/compass.json',
-            fit: BoxFit.contain,
-            alignment: Alignment.center,
-          ),
-          title: const Text('Select City'),
-          onTap: () {
-            // Your select city logic
-          },
-        ),
-        ListTile(
-          leading: Lottie.asset(
-            'assets/animations/weather-icons/lottie/lightning-bolt.json',
-            fit: BoxFit.contain,
-            alignment: Alignment.center,
-          ),
-          title: const Text('Set Alert system'),
-          onTap:
-              user != null
-                  ? () async {
-                    await callNotifyApi();
-                  }
-                  : null,
-          enabled: user != null,
-        ),
-      ],
-    ),
-  );
-}
+import '../widgets/drawer_widget.dart';
+import '../utils/transition_logic.dart' show navigateWithSlideTransition;
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -244,40 +130,6 @@ class _HomePageViewState extends State<HomePageView>
     });
   }
 
-  void _showBottomMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder:
-          (context) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _bottomMenuItem(
-                title: 'Select city',
-                lottieAsset: 'assets/animations/weather-icons/lottie/city.json',
-                onTap:
-                    () => _navigateWithSlideTransition(
-                      context,
-                      const CitySelectionView(),
-                    ),
-              ),
-              _bottomMenuItem(
-                title: 'Radar',
-                lottieAsset:
-                    'assets/animations/weather-icons/lottie/compass.json',
-                onTap:
-                    () => _navigateWithSlideTransition(
-                      context,
-                      const RadarPageView(),
-                    ),
-              ),
-            ],
-          ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -335,14 +187,6 @@ class _HomePageViewState extends State<HomePageView>
                     },
                     activeColor: Colors.blue, // customize colors if you want
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.more_vert),
-                    onPressed: () => _showBottomMenu(context),
-                    color:
-                        Theme.of(context)
-                            .colorScheme
-                            .onSurface, // Or any color you want for the icon
-                  ),
                 ],
               ),
             ],
@@ -351,21 +195,6 @@ class _HomePageViewState extends State<HomePageView>
       ),
       drawer: buildAppDrawer(context, isSignedIn),
 
-      //AppBar(
-      //   backgroundColor: Colors.white,
-      //   leading: CircleAvatar(
-      //     backgroundColor: Color(0xffE6E6E6),
-      //     radius: 30,
-      //     child: Icon(Icons.person, color: Color(0xffCCCCCC)),
-      //   ),
-      //   actions: [
-      //     IconButton(
-      //       icon: const Icon(Icons.more_vert),
-      //       onPressed: () => _showBottomMenu(context),
-      //       color: Colors.black, // Or any color you want for the icon
-      //     ),
-      //   ],
-      // ),
       body: Container(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -838,52 +667,11 @@ class _HomePageViewState extends State<HomePageView>
       ),
     );
   }
-
-  Widget _bottomMenuItem({
-    required String title,
-    required String lottieAsset,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Lottie.asset(
-        lottieAsset,
-        width: 40,
-        height: 40,
-        fit: BoxFit.contain,
-        alignment: Alignment.center,
-      ),
-      title: Text(title),
-      onTap: onTap,
-    );
-  }
-
-  void _navigateWithSlideTransition(BuildContext context, Widget page) {
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 1000),
-        pageBuilder: (context, animation, secondaryAnimation) => page,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          const curve = Curves.ease;
-          final tween = Tween(
-            begin: begin,
-            end: end,
-          ).chain(CurveTween(curve: curve));
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-      ),
-    );
-  }
 }
 
 Color _getTextColor(String conditionText) {
   final weatherType = getWeatherBgType(conditionText);
-  print("This is the weather type: $weatherType");
+
   if (weatherType == WeatherType.sunny || weatherType == WeatherType.cloudy) {
     return Colors.black;
   } else {
