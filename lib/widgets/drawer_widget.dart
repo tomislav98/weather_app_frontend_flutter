@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:weather_app/widgets/sign_up_widget.dart';
 import 'package:lottie/lottie.dart';
 import '../services/auth_service.dart';
 import '../services/alert_api.dart';
 import '../screens/city_selection_view.dart';
 import '../utils/transition_logic.dart' show navigateWithSlideTransition;
 import '../screens/radar_page_view.dart';
+import '../screens/welcome_page_view.dart';
 
 Widget buildAppDrawer(BuildContext context, bool isSignedIn) {
   final authService = AuthService();
@@ -55,7 +55,7 @@ Widget buildAppDrawer(BuildContext context, bool isSignedIn) {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const SignUpWidget(),
+                                  builder: (context) => const WelcomePageView(),
                                 ),
                               );
                             },

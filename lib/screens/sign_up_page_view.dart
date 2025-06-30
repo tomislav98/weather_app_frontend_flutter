@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../screens/home_page_view.dart';
+import 'home_page_view.dart';
 
-class SignUpWidget extends StatefulWidget {
-  const SignUpWidget({super.key});
+class SignUpPageView extends StatefulWidget {
+  const SignUpPageView({super.key});
 
   @override
-  State<SignUpWidget> createState() => _SignUpWidgetState();
+  State<SignUpPageView> createState() => _SignUpPageViewState();
 }
 
-class _SignUpWidgetState extends State<SignUpWidget> {
+class _SignUpPageViewState extends State<SignUpPageView> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -25,9 +25,20 @@ class _SignUpWidgetState extends State<SignUpWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed:
+              () => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomePageView()),
+              ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: Center(
         child: AlertDialog(
-          title: const Text("Sign In Required"),
           content: SizedBox(
             width: MediaQuery.of(context).size.width * 0.8,
             height: 380,
@@ -157,8 +168,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                         onPressed: () async {
                           String email = emailController.text;
                           String password = passwordController.text;
-                          print('This is the email $email');
-                          print('This is the password $password');
+
                           // Handle forgot password tap — navigate or show dialog etc.
 
                           try {
@@ -178,7 +188,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                             }
                           } catch (e) {
                             // Handle error (e.g., show a snackbar)
-                            print('Sign-up error: $e');
+
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
@@ -189,7 +199,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                           }
                         },
                         child: Text(
-                          'SIGN IN',
+                          'SIGN UP',
                           style: const TextStyle(
                             fontFamily: 'Montserrat',
                             fontSize: 24,
@@ -198,21 +208,6 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // Handle forgot password tap — navigate or show dialog etc.
-                      print('Forgot password tapped');
-                    },
-                    child: Text(
-                      'Forgot password?',
-                      style: TextStyle(
-                        color: Colors.blue, // Link color
-                        fontSize: 16,
-                        decoration:
-                            TextDecoration.underline, // Optional underline
                       ),
                     ),
                   ),

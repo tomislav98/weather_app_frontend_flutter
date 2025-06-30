@@ -2,21 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:weather_app/db/sqflite_db.dart';
-import 'package:weather_app/screens/city_selection_view.dart';
 import '../models/weather.dart';
 import '../services/weather_api.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:weather_app/screens/radar_page_view.dart';
 import 'package:lottie/lottie.dart';
 import 'package:intl/intl.dart';
 import '../widgets/flippable_hourly_card.dart';
 import 'package:provider/provider.dart';
 import '../utils/weather_icon_mapper.dart';
-import 'package:weather_app/screens/user_form_view.dart';
 import 'package:flutter_weather_bg_null_safety/flutter_weather_bg.dart';
 import 'package:weather_app/theme_provider.dart';
 import '../widgets/drawer_widget.dart';
-import '../utils/transition_logic.dart' show navigateWithSlideTransition;
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -69,22 +65,6 @@ class _HomePageViewState extends State<HomePageView>
       // You can navigate them to settings or give instructions
       _openLocationSettings();
     }
-  }
-
-  Future<void> _dialogBuilder(BuildContext context) {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          //title: const Text('Basic dialog title'),
-          content: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8,
-            height: 380,
-            child: const UserFormView(),
-          ),
-        );
-      },
-    );
   }
 
   @override
