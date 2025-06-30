@@ -95,6 +95,12 @@ class MyApp extends StatelessWidget {
             color: Colors.white60,
             fontWeight: FontWeight.w400,
           ),
+          labelSmall: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 11,
+            color: Colors.white60,
+            fontWeight: FontWeight.w400,
+          ),
           bodySmall: TextStyle(
             fontFamily: 'Montserrat',
             fontSize: 14,

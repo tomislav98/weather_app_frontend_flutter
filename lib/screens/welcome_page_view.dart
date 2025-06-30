@@ -27,13 +27,14 @@ class WelcomePageView extends StatelessWidget {
       body: Center(
         child: Container(
           padding: EdgeInsets.all(16),
-          height: MediaQuery.of(context).size.height * 0.4,
+          //height: MediaQuery.of(context).size.height * 0.5,
           width: MediaQuery.of(context).size.width * 0.9,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             color: Colors.black,
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -91,7 +92,7 @@ class WelcomePageView extends StatelessWidget {
                 children: [
                   Text(
                     'Already have an account? ',
-                    style: Theme.of(context).textTheme.labelLarge,
+                    style: Theme.of(context).textTheme.labelSmall,
                   ),
 
                   GestureDetector(
@@ -116,7 +117,7 @@ class WelcomePageView extends StatelessWidget {
                 children: [
                   Text(
                     'Don\'t want to sign in right now?',
-                    style: Theme.of(context).textTheme.labelLarge,
+                    style: Theme.of(context).textTheme.labelSmall,
                   ),
 
                   GestureDetector(
@@ -141,9 +142,13 @@ class WelcomePageView extends StatelessWidget {
                 children: [
                   Text(
                     'By continuing, you agree to ',
-                    style: Theme.of(context).textTheme.labelLarge,
+                    style: Theme.of(context).textTheme.labelSmall,
                   ),
-
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
                   Text(
                     'Terms of Service',
                     style: Theme.of(context).textTheme.bodySmall,
