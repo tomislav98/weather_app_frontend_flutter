@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'home_page_view.dart';
 
+import '../screens/email_verification_view.dart';
+
 class SignUpPageView extends StatefulWidget {
   const SignUpPageView({super.key});
 
@@ -166,10 +168,8 @@ class _SignUpPageViewState extends State<SignUpPageView> {
                       ),
                       child: TextButton(
                         onPressed: () async {
-                          String email = emailController.text;
-                          String password = passwordController.text;
-
-                          // Handle forgot password tap — navigate or show dialog etc.
+                          String email = emailController.text.trim();
+                          String password = passwordController.text.trim();
 
                           try {
                             final userCredential = await authService.signUp(
@@ -178,17 +178,28 @@ class _SignUpPageViewState extends State<SignUpPageView> {
                             );
 
                             if (userCredential != null) {
-                              // If sign-up is successful, navigate to HomeScreen
+                              await userCredential.user
+                                  ?.sendEmailVerification();
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Verification email sent. Please check your inbox.',
+                                  ),
+                                ),
+                              );
+
+                              // Show a new screen or UI with a "Continue" button to call:
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => HomePageView(),
+                                  builder:
+                                      (context) =>
+                                          const EmailVerificationView(),
                                 ),
                               );
                             }
                           } catch (e) {
-                            // Handle error (e.g., show a snackbar)
-
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
