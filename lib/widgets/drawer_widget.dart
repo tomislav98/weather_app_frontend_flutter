@@ -37,11 +37,9 @@ Widget buildAppDrawer(BuildContext context, bool isSignedIn) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user != null
-                        ? (user.displayName ?? 'User name')
-                        : 'Profile',
+                    user != null ? (user.email ?? 'User name') : 'Profile',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -60,7 +58,7 @@ Widget buildAppDrawer(BuildContext context, bool isSignedIn) {
                               );
                             },
                     child: Text(
-                      'Sign Up',
+                      'Welcome screen',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.white70,
