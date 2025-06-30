@@ -95,6 +95,13 @@ class MyApp extends StatelessWidget {
             color: Colors.white60,
             fontWeight: FontWeight.w400,
           ),
+          bodySmall: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.lightBlueAccent, // or Colors.blue
+            decoration: TextDecoration.underline,
+          ),
 
           // const Color(0xFF3E4A59)
         ),

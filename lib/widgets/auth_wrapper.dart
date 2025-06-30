@@ -1,8 +1,7 @@
 // lib/widgets/auth_wrapper.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../screens/home_page_view.dart';
-import '../widgets/sign_up_widget.dart';
+import '../screens/sign_up_page_view.dart';
 import '../widgets/drawer_widget.dart';
 
 class AuthWrapper extends StatelessWidget {
@@ -17,7 +16,7 @@ class AuthWrapper extends StatelessWidget {
         } else if (snapshot.hasData) {
           return buildAppDrawer(context, false);
         } else {
-          return SignUpWidget();
+          return SignUpPageView();
         }
       },
     );
