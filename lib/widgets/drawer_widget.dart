@@ -40,33 +40,36 @@ Widget buildAppDrawer(BuildContext context) {
                   Text(
                     user != null ? (user.email ?? 'User name') : 'Profile',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
                   SizedBox(height: 8),
-                  GestureDetector(
-                    onTap:
-                        isSignedIn
-                            ? null
-                            : () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const WelcomePageView(),
-                                ),
-                              );
-                            },
-                    child: Text(
-                      'Welcome screen',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                        decoration: TextDecoration.underline,
+                  if (!isSignedIn)
+                    GestureDetector(
+                      onTap:
+                          isSignedIn
+                              ? null
+                              : () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => const WelcomePageView(),
+                                  ),
+                                );
+                              },
+
+                      child: Text(
+                        'Welcome screen',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white70,
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ],

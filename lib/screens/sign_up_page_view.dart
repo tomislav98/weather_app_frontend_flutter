@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'home_page_view.dart';
-
 import '../screens/email_verification_view.dart';
 
 class SignUpPageView extends StatefulWidget {
@@ -12,216 +11,141 @@ class SignUpPageView extends StatefulWidget {
 }
 
 class _SignUpPageViewState extends State<SignUpPageView> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-
-  final authService = AuthService();
-  bool _obscureText = true;
-  // Create a global key that uniquely identifies the Form widget
-  // and allows validation of the form.
-  //
-  // Note: This is a `GlobalKey<FormState>`,
-  // not a GlobalKey<UserFormViewState>.
   final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _authService = AuthService();
+
+  bool _obscureText = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  InputDecoration _buildInputDecoration(String label, {Widget? suffixIcon}) {
+    return InputDecoration(
+      labelText: label,
+      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      enabledBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.blue, width: 2),
+      ),
+      errorBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.red),
+      ),
+      focusedErrorBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.red, width: 2),
+      ),
+      suffixIcon: suffixIcon,
+    );
+  }
+
+  Widget _buildEmailField() {
+    return TextFormField(
+      controller: _emailController,
+      decoration: _buildInputDecoration('Email'),
+      validator:
+          (value) =>
+              value == null || value.isEmpty ? 'Please enter an email' : null,
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return TextFormField(
+      controller: _passwordController,
+      obscureText: _obscureText,
+      decoration: _buildInputDecoration(
+        'Password',
+        suffixIcon: IconButton(
+          icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
+          onPressed: () => setState(() => _obscureText = !_obscureText),
+        ),
+      ),
+      validator:
+          (value) =>
+              value == null || value.isEmpty ? 'Please enter a password' : null,
+    );
+  }
+
+  Future<void> _handleSignUp() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    try {
+      final userCredential = await _authService.signUp(email, password);
+      if (userCredential != null) {
+        await userCredential.user?.sendEmailVerification();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Verification email sent.')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const EmailVerificationView()),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sign-up failed: ${e.toString()}')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+        leading: BackButton(
           onPressed:
               () => Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => HomePageView()),
+                MaterialPageRoute(builder: (_) => const HomePageView()),
               ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: Center(
-        child: AlertDialog(
-          content: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8,
-            height: 380,
+        child: SingleChildScrollView(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(color: Colors.black26, blurRadius: 10),
+              ],
+            ),
             child: Form(
               key: _formKey,
               child: Column(
-                children: <Widget>[
-                  CircleAvatar(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircleAvatar(
                     backgroundColor: Color(0xffE6E6E6),
                     radius: 40,
                     child: ClipOval(
-                      child: Image.asset(
-                        'assets/profile/avatar.jpg',
-                        fit: BoxFit.cover,
-                        width: 80, // match diameter
+                      child: Image(
+                        image: AssetImage('assets/profile/avatar.jpg'),
+                        width: 80,
                         height: 80,
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-
-                    child: TextFormField(
-                      controller: emailController,
-                      decoration: InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 12,
-                        ),
-                        labelText: 'Email',
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.blue, width: 2),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red, width: 2),
-                        ),
-                      ),
-                      // The validator receives the text that the user has entered.
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter some text';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: TextFormField(
-                      controller: passwordController,
-                      obscureText: _obscureText,
-                      decoration: InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 12,
-                        ),
-                        labelText: 'Password',
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.blue, width: 2),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red, width: 2),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureText
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureText = !_obscureText; // Toggle
-                            });
-                          },
-                        ),
-                      ),
-
-                      // The validator receives the text that the user has entered.
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter some text';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Color(0xFF90CAF9), // light blue
-                            Color(0xFF42A5F5), // medium blue
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: TextButton(
-                        onPressed: () async {
-                          String email = emailController.text.trim();
-                          String password = passwordController.text.trim();
-
-                          try {
-                            final userCredential = await authService.signUp(
-                              email,
-                              password,
-                            );
-
-                            if (userCredential != null) {
-                              await userCredential.user
-                                  ?.sendEmailVerification();
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Verification email sent. Please check your inbox.',
-                                  ),
-                                ),
-                              );
-
-                              // Show a new screen or UI with a "Continue" button to call:
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) =>
-                                          const EmailVerificationView(),
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Sign-up failed: ${e.toString()}',
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                        child: Text(
-                          'SIGN UP',
-                          style: const TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ),
+                  const SizedBox(height: 20),
+                  _buildEmailField(),
+                  const SizedBox(height: 20),
+                  _buildPasswordField(),
+                  const SizedBox(height: 20),
+                  _buildGradientButton(),
                 ],
               ),
             ),
@@ -231,10 +155,29 @@ class _SignUpPageViewState extends State<SignUpPageView> {
     );
   }
 
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
+  Widget _buildGradientButton() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF90CAF9), Color(0xFF42A5F5)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: TextButton(
+        onPressed: _handleSignUp,
+        child: const Text(
+          'SIGN UP',
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ),
+    );
   }
 }
