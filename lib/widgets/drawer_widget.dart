@@ -7,13 +7,14 @@ import '../utils/transition_logic.dart' show navigateWithSlideTransition;
 import '../screens/radar_page_view.dart';
 import '../screens/welcome_page_view.dart';
 
-Widget buildAppDrawer(BuildContext context, bool isSignedIn) {
+Widget buildAppDrawer(BuildContext context) {
   final authService = AuthService();
   final user = authService.getCurrentUser;
+  bool isSignedIn = authService.isSignedIn();
+
   return Drawer(
     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-    child: ListView(
-      padding: EdgeInsets.zero,
+    child: Column(
       children: [
         DrawerHeader(
           decoration: BoxDecoration(color: Color(0xFF34495E)),
@@ -71,44 +72,75 @@ Widget buildAppDrawer(BuildContext context, bool isSignedIn) {
             ],
           ),
         ),
-        ListTile(
-          leading: Lottie.asset(
-            'assets/animations/weather-icons/lottie/city.json',
-            fit: BoxFit.contain,
-            alignment: Alignment.center,
-          ),
-          title: const Text('Select City'),
-          onTap:
-              () => navigateWithSlideTransition(
-                context,
-                const CitySelectionView(),
+        Expanded(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              ListTile(
+                leading: Lottie.asset(
+                  'assets/animations/weather-icons/lottie/city.json',
+                  fit: BoxFit.contain,
+                  alignment: Alignment.center,
+                ),
+                title: const Text('Select City'),
+                onTap:
+                    () => navigateWithSlideTransition(
+                      context,
+                      const CitySelectionView(),
+                    ),
               ),
-        ),
-        ListTile(
-          leading: Lottie.asset(
-            'assets/animations/weather-icons/lottie/lightning-bolt.json',
-            fit: BoxFit.contain,
-            alignment: Alignment.center,
+              ListTile(
+                leading: Lottie.asset(
+                  'assets/animations/weather-icons/lottie/lightning-bolt.json',
+                  fit: BoxFit.contain,
+                  alignment: Alignment.center,
+                ),
+                title: const Text('Set Alert system'),
+                onTap:
+                    user != null
+                        ? () async {
+                          await callNotifyApi();
+                        }
+                        : null,
+                enabled: user != null,
+              ),
+              ListTile(
+                leading: Lottie.asset(
+                  'assets/animations/weather-icons/lottie/compass.json',
+                  fit: BoxFit.contain,
+                  alignment: Alignment.center,
+                ),
+                title: const Text('Radar'),
+                onTap:
+                    () => navigateWithSlideTransition(
+                      context,
+                      const RadarPageView(),
+                    ),
+              ),
+            ],
           ),
-          title: const Text('Set Alert system'),
-          onTap:
-              user != null
-                  ? () async {
-                    await callNotifyApi();
-                  }
-                  : null,
-          enabled: user != null,
         ),
-        ListTile(
-          leading: Lottie.asset(
-            'assets/animations/weather-icons/lottie/compass.json',
-            fit: BoxFit.contain,
-            alignment: Alignment.center,
+        Divider(color: Colors.white, thickness: 1),
+        if (isSignedIn)
+          ListTile(
+            leading: Icon(Icons.logout, color: Colors.white),
+            title: Text(
+              'Log Out',
+              style: TextStyle(
+                // color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            onTap: () async {
+              await authService.signOut();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const WelcomePageView(),
+                ),
+              );
+            },
           ),
-          title: const Text('Radar'),
-          onTap:
-              () => navigateWithSlideTransition(context, const RadarPageView()),
-        ),
       ],
     ),
   );

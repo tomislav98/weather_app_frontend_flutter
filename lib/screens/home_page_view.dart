@@ -173,7 +173,7 @@ class _HomePageViewState extends State<HomePageView>
           ),
         ),
       ),
-      drawer: buildAppDrawer(context, isSignedIn),
+      drawer: buildAppDrawer(context),
 
       body: Container(
         padding: EdgeInsets.all(16),

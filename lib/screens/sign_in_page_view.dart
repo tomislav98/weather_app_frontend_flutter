@@ -172,7 +172,7 @@ class _SignInPageViewState extends State<SignInPageView> {
                           // Handle forgot password tap — navigate or show dialog etc.
 
                           try {
-                            final userCredential = await authService.signUp(
+                            final userCredential = await authService.signIn(
                               email,
                               password,
                             );

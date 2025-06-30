@@ -14,7 +14,7 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator(); // or splash screen
         } else if (snapshot.hasData) {
-          return buildAppDrawer(context, false);
+          return buildAppDrawer(context);
         } else {
           return SignUpPageView();
         }
