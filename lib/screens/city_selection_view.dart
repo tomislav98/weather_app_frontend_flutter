@@ -20,8 +20,10 @@ class _CitySelectionViewState extends State<CitySelectionView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: const Text('City Selection'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -75,7 +77,7 @@ class _CitySelectionViewState extends State<CitySelectionView> {
                 background: Container(
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  color: Colors.red,
+                  color: Colors.red.withOpacity(0.5),
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 onDismissed: (direction) {
@@ -95,7 +97,7 @@ class _CitySelectionViewState extends State<CitySelectionView> {
                   margin: const EdgeInsets.all(8),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: UiColors.royalBlue.withValues(alpha: 0.8),
+                    color: Theme.of(context).cardColor,
 
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -121,12 +123,7 @@ class _CitySelectionViewState extends State<CitySelectionView> {
                           children: [
                             Text(
                               weather.locationName,
-                              style: const TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                              style: Theme.of(context).textTheme.titleLarge,
                             ),
                             const SizedBox(height: 8),
                             const Spacer(),
@@ -135,22 +132,12 @@ class _CitySelectionViewState extends State<CitySelectionView> {
                               children: [
                                 Text(
                                   "${weather.currentTemperature}°",
-                                  style: const TextStyle(
-                                    fontFamily: 'Montserrat',
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.normal,
-                                    color: Colors.white,
-                                  ),
+                                  style: Theme.of(context).textTheme.titleLarge,
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   weather.conditionText,
-                                  style: const TextStyle(
-                                    fontFamily: 'Montserrat',
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.normal,
-                                    color: Colors.white,
-                                  ),
+                                  style: Theme.of(context).textTheme.labelLarge,
                                 ),
                               ],
                             ),
@@ -166,7 +153,7 @@ class _CitySelectionViewState extends State<CitySelectionView> {
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Colors.white,
+        color: Theme.of(context).scaffoldBackgroundColor,
         padding: const EdgeInsets.all(16),
         child: SizedBox(
           height: 50, // optional fixed height for better control
