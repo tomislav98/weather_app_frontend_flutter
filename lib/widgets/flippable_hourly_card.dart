@@ -145,10 +145,4 @@ class _FlippableHourlyCardState extends State<FlippableHourlyCard> {
       ),
     );
   }
-
-  final _hourStyle = const TextStyle(
-    fontFamily: 'Montserrat',
-    fontSize: 13,
-    color: Colors.black87,
-  );
 }

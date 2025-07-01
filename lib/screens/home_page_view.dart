@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart' show Geolocator;
+
 import 'package:weather_app/db/sqflite_db.dart';
 import '../models/weather.dart';
 import '../services/weather_api.dart';
@@ -26,7 +26,7 @@ class _HomePageViewState extends State<HomePageView>
   Future<Placemark>? manageGPS;
   late Future<void> locationServiceDialog;
   final dbHelper = DatabaseHelper();
-  List<String> savedCities = [];
+  List<Map<String, String>> _savedCities = [];
   late PageController _pageController;
   late final String sunrise;
   late final String sunset;
@@ -36,36 +36,36 @@ class _HomePageViewState extends State<HomePageView>
   final now = DateTime.now();
   final formatDate = DateFormat("hh:mm a");
 
-  Future<void> _showGpsDisableDialog(BuildContext context) async {
-    bool? result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false, // User must tap a button
-      builder: (context) {
-        return AlertDialog(
-          title: Text('GPS is enabled'),
-          content: Text('Would you like to disable GPS?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false), // User says NO
-              child: Text('No'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true); // User says YES
-              },
-              child: Text('Yes'),
-            ),
-          ],
-        );
-      },
-    );
+  // Future<void> _showGpsDisableDialog(BuildContext context) async {
+  //   bool? result = await showDialog<bool>(
+  //     context: context,
+  //     barrierDismissible: false, // User must tap a button
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: Text('GPS is enabled'),
+  //         content: Text('Would you like to disable GPS?'),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.of(context).pop(false), // User says NO
+  //             child: Text('No'),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop(true); // User says YES
+  //             },
+  //             child: Text('Yes'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
 
-    if (result == true) {
-      // User wants to disable GPS
-      // You can navigate them to settings or give instructions
-      _openLocationSettings();
-    }
-  }
+  //   if (result == true) {
+  //     // User wants to disable GPS
+  //     // You can navigate them to settings or give instructions
+  //     _openLocationSettings();
+  //   }
+  // }
 
   @override
   void dispose() {
@@ -73,12 +73,12 @@ class _HomePageViewState extends State<HomePageView>
     super.dispose();
   }
 
-  void _openLocationSettings() {
-    // Unfortunately, you cannot disable GPS programmatically for privacy reasons,
-    // but you can open the location settings page for the user.
+  // void _openLocationSettings() {
+  //   // Unfortunately, you cannot disable GPS programmatically for privacy reasons,
+  //   // but you can open the location settings page for the user.
 
-    Geolocator.openLocationSettings();
-  }
+  //   Geolocator.openLocationSettings();
+  // }
 
   @override
   void initState() {
@@ -94,7 +94,15 @@ class _HomePageViewState extends State<HomePageView>
     // it's built in
     if (!mounted) return;
     setState(() {
-      savedCities = cities;
+      _savedCities =
+          cities
+              .map(
+                (row) => {
+                  'city': row['city'] as String,
+                  'country': row['country'] as String,
+                },
+              )
+              .toList();
     });
   }
 
@@ -106,7 +114,15 @@ class _HomePageViewState extends State<HomePageView>
 
     setState(() {
       // here is triggered FutureBuilder
-      savedCities = cities;
+      _savedCities =
+          cities
+              .map(
+                (row) => {
+                  'city': row['city'] as String,
+                  'country': row['country'] as String,
+                },
+              )
+              .toList();
     });
   }
 
@@ -114,7 +130,7 @@ class _HomePageViewState extends State<HomePageView>
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.themeMode == ThemeMode.dark;
-    bool isSignedIn = false;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -182,12 +198,15 @@ class _HomePageViewState extends State<HomePageView>
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                itemCount: savedCities.length,
+                itemCount: _savedCities.length,
                 itemBuilder: (context, index) {
                   return RefreshIndicator(
                     onRefresh: _refresh,
                     child: FutureBuilder<Weather>(
-                      future: fetchWeatherData(savedCities[index]),
+                      future: fetchWeatherData(
+                        _savedCities[index]['city']!,
+                        _savedCities[index]['country']!,
+                      ),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -242,7 +261,7 @@ class _HomePageViewState extends State<HomePageView>
               padding: const EdgeInsets.all(16.0),
               child: SmoothPageIndicator(
                 controller: _pageController,
-                count: savedCities.length,
+                count: _savedCities.length,
                 effect: WormEffect(
                   dotHeight: 12,
                   dotWidth: 12,
@@ -273,11 +292,22 @@ class _HomePageViewState extends State<HomePageView>
                 style: Theme.of(context).textTheme.titleLarge,
                 textAlign: TextAlign.start,
               ),
-              Text(
-                DateFormat(
-                  'EEEE, d MMMM',
-                ).format(DateTime.now()), // Example: Monday, 17 June
-                style: Theme.of(context).textTheme.labelMedium,
+
+              Row(
+                children: [
+                  Text(
+                    DateFormat(
+                      'EEEE, d MMMM',
+                    ).format(DateTime.now()), // Example: Monday, 17 June
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                  SizedBox(height: 1),
+                  Text(
+                    '(${weather.country})',
+                    style: Theme.of(context).textTheme.labelMedium,
+                    textAlign: TextAlign.start,
+                  ),
+                ],
               ),
             ],
           ),
@@ -517,136 +547,136 @@ class _HomePageViewState extends State<HomePageView>
     );
   }
 
-  Widget _sunsetAndSunrise(BuildContext context, Weather weather) {
-    final format = DateFormat("hh:mm a"); // Formato tipo "06:15 AM"
-    DateTime today = DateTime.now();
+  // Widget _sunsetAndSunrise(BuildContext context, Weather weather) {
+  //   final format = DateFormat("hh:mm a"); // Formato tipo "06:15 AM"
+  //   DateTime today = DateTime.now();
 
-    final sunriseParsed = format.parse(weather.sunrise);
-    final sunsetParsed = format.parse(weather.sunset);
+  //   final sunriseParsed = format.parse(weather.sunrise);
+  //   final sunsetParsed = format.parse(weather.sunset);
 
-    final sunriseTime = DateTime(
-      today.year,
-      today.month,
-      today.day,
-      sunriseParsed.hour,
-      sunriseParsed.minute,
-    );
+  //   final sunriseTime = DateTime(
+  //     today.year,
+  //     today.month,
+  //     today.day,
+  //     sunriseParsed.hour,
+  //     sunriseParsed.minute,
+  //   );
 
-    final sunsetTime = DateTime(
-      today.year,
-      today.month,
-      today.day,
-      sunsetParsed.hour,
-      sunsetParsed.minute,
-    );
+  //   final sunsetTime = DateTime(
+  //     today.year,
+  //     today.month,
+  //     today.day,
+  //     sunsetParsed.hour,
+  //     sunsetParsed.minute,
+  //   );
 
-    final totalDuration = sunsetTime.difference(sunriseTime).inSeconds;
-    final elapsed = now
-        .difference(sunriseTime)
-        .inSeconds
-        .clamp(0, totalDuration);
-    final progress = totalDuration == 0 ? 0.0 : elapsed / totalDuration;
-    double maxWidth = 300; // larghezza barra
+  //   final totalDuration = sunsetTime.difference(sunriseTime).inSeconds;
+  //   final elapsed = now
+  //       .difference(sunriseTime)
+  //       .inSeconds
+  //       .clamp(0, totalDuration);
+  //   final progress = totalDuration == 0 ? 0.0 : elapsed / totalDuration;
+  //   double maxWidth = 300; // larghezza barra
 
-    //double progress = 0.5; // esempio
+  //   //double progress = 0.5; // esempio
 
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.9,
-      height: MediaQuery.of(context).size.height * 0.1,
-      color: Colors.blue,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Text(
-                'Sunrise and sunset',
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.start,
-              ),
-            ],
-          ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Barra base
-                  Container(
-                    width: maxWidth,
-                    height: 1,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
+  //   return Container(
+  //     width: MediaQuery.of(context).size.width * 0.9,
+  //     height: MediaQuery.of(context).size.height * 0.1,
+  //     color: Colors.blue,
+  //     child: Column(
+  //       children: [
+  //         Row(
+  //           children: [
+  //             Text(
+  //               'Sunrise and sunset',
+  //               style: const TextStyle(
+  //                 fontFamily: 'Montserrat',
+  //                 fontSize: 20,
+  //                 fontWeight: FontWeight.bold,
+  //               ),
+  //               textAlign: TextAlign.start,
+  //             ),
+  //           ],
+  //         ),
+  //         SizedBox(height: 20),
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.center,
+  //           children: [
+  //             Stack(
+  //               clipBehavior: Clip.none,
+  //               children: [
+  //                 // Barra base
+  //                 Container(
+  //                   width: maxWidth,
+  //                   height: 1,
+  //                   decoration: BoxDecoration(
+  //                     color: Colors.grey.shade300,
+  //                     borderRadius: BorderRadius.circular(10),
+  //                   ),
+  //                 ),
 
-                  // Barra riempita
-                  Container(
-                    width: maxWidth * progress,
-                    height: 1,
-                    decoration: BoxDecoration(
-                      color: Colors.orangeAccent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  Positioned(
-                    left: -24,
-                    top: -31,
-                    child: SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Lottie.asset(
-                        'assets/animations/weather-icons/lottie/sunrise.json',
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: maxWidth - 24,
-                    top: -31,
-                    child: SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Lottie.asset(
-                        'assets/animations/weather-icons/lottie/sunset.json',
-                      ),
-                    ),
-                  ),
+  //                 // Barra riempita
+  //                 Container(
+  //                   width: maxWidth * progress,
+  //                   height: 1,
+  //                   decoration: BoxDecoration(
+  //                     color: Colors.orangeAccent,
+  //                     borderRadius: BorderRadius.circular(10),
+  //                   ),
+  //                 ),
+  //                 Positioned(
+  //                   left: -24,
+  //                   top: -31,
+  //                   child: SizedBox(
+  //                     width: 48,
+  //                     height: 48,
+  //                     child: Lottie.asset(
+  //                       'assets/animations/weather-icons/lottie/sunrise.json',
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 Positioned(
+  //                   left: maxWidth - 24,
+  //                   top: -31,
+  //                   child: SizedBox(
+  //                     width: 48,
+  //                     height: 48,
+  //                     child: Lottie.asset(
+  //                       'assets/animations/weather-icons/lottie/sunset.json',
+  //                     ),
+  //                   ),
+  //                 ),
 
-                  // Sole che si muove solo orizzontalmente
-                  Positioned(
-                    left:
-                        (maxWidth * progress).clamp(24.0, maxWidth - 24.0) - 24,
-                    top: -24,
-                    child: SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Lottie.asset(
-                        'assets/animations/weather-icons/lottie/clear-day.json',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 5),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(children: [Text(weather.sunrise)]),
-              Column(children: [Text(weather.sunset)]),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  //                 // Sole che si muove solo orizzontalmente
+  //                 Positioned(
+  //                   left:
+  //                       (maxWidth * progress).clamp(24.0, maxWidth - 24.0) - 24,
+  //                   top: -24,
+  //                   child: SizedBox(
+  //                     width: 48,
+  //                     height: 48,
+  //                     child: Lottie.asset(
+  //                       'assets/animations/weather-icons/lottie/clear-day.json',
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //         SizedBox(height: 5),
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             Column(children: [Text(weather.sunrise)]),
+  //             Column(children: [Text(weather.sunset)]),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }
 
 Color _getTextColor(String conditionText) {

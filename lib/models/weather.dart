@@ -1,7 +1,7 @@
 import 'package:weather_app/models/hourly_weather.dart' show HourlyWeather;
-import 'package:flutter_map/flutter_map.dart';
 
 class Weather {
+  final String country;
   final String locationName;
   final double currentTemperature;
   final String conditionText;
@@ -17,6 +17,7 @@ class Weather {
   final double maxTempC;
 
   const Weather({
+    required this.country,
     required this.locationName,
     required this.currentTemperature,
     required this.conditionText,
@@ -40,6 +41,8 @@ class Weather {
         hoursJson.map((hourJson) => HourlyWeather.fromJson(hourJson)).toList();
 
     return Weather(
+      country:
+          weatherJson['location']['country'].toString().trim().toLowerCase(),
       locationName: weatherJson['location']['name'],
       currentTemperature: (weatherJson['current']['temp_c'] as num).toDouble(),
       conditionText:
