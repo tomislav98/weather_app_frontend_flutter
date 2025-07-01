@@ -3,7 +3,10 @@ import 'dart:async' show Timer;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather_app/db/sqflite_db.dart';
+import 'package:weather_app/screens/home_page_view.dart';
 import '../services/search_api.dart';
+import '../utils/transition_logic.dart';
+import '../screens/city_selection_view.dart';
 
 class SearchPageView extends StatefulWidget {
   const SearchPageView({super.key});
@@ -45,7 +48,17 @@ class _SearchPageViewState extends State<SearchPageView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add the City')),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: const Text('Add the City'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            navigateWithSlideTransition(context, CitySelectionView());
+          },
+        ),
+      ),
       body: Container(
         padding: EdgeInsets.all(16),
         child: RefreshIndicator(
@@ -70,7 +83,7 @@ class _SearchPageViewState extends State<SearchPageView> {
                   onChanged: (_) => _onSearchChanged(),
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: const Color(0xCC34495E),
                     contentPadding: const EdgeInsets.all(16),
                     prefixIcon: const Icon(Icons.search),
                     hintText: 'Search...',
@@ -91,28 +104,26 @@ class _SearchPageViewState extends State<SearchPageView> {
                     return ListTile(
                       title: Text('${city['name']}, ${city['country']}'),
                       onTap: () async {
-                        print("THis is the city : $city");
                         // select the main city
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setString('selectedCity', city['name']);
-                        dbHelper.insertCity(city['name']);
+                        await dbHelper.insertCity(
+                          city['name'],
+                          city['country'],
+                        );
 
                         setState(() {
                           _controller.text = '';
                           _searchResults.clear();
                         });
+                        if (!mounted) return;
+                        navigateWithSlideTransition(
+                          context,
+                          const HomePageView(),
+                        );
                       },
                     );
                   },
-                ),
-              ),
-              Container(child: Text('recommended cities')),
-              Container(
-                child: Row(
-                  children: [
-                    Column(children: [Text('Current position')]),
-                    Column(children: []),
-                  ],
                 ),
               ),
             ],

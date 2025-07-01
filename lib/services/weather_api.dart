@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/weather.dart';
 import 'package:weather_app/config.dart' show WEATHER_API_KEY;
-import 'package:weather_app/utils/logger.dart';
+
 import 'dart:io';
 
 Future<void> logWeatherData(String responseBody) async {
@@ -14,18 +14,18 @@ Future<void> logWeatherData(String responseBody) async {
   await logFile.writeAsString(logEntry, mode: FileMode.append);
 }
 
-Future<Weather> fetchWeatherData(String city) async {
+Future<Weather> fetchWeatherData(String city, String country) async {
   //appLogger.i('Fetching weather data for $city');
-
+  final query = "$city,$country";
   final response = await http.get(
     Uri.parse(
-      'https://api.weatherapi.com/v1/forecast.json?key=$WEATHER_API_KEY&q=$city&days=3',
+      'https://api.weatherapi.com/v1/forecast.json?key=$WEATHER_API_KEY&q=$query&days=3',
     ),
   );
 
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body) as Map<String, dynamic>;
-    final formattedJson = const JsonEncoder.withIndent('  ').convert(data);
+
     //appLogger.i('Weather API response:\n$formattedJson');
     return Weather.fromJson(data);
   } else {

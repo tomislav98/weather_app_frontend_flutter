@@ -1,15 +1,4 @@
-import 'package:flutter_weather_bg_null_safety/bg/weather_bg.dart';
-import 'package:flutter_weather_bg_null_safety/bg/weather_cloud_bg.dart';
-import 'package:flutter_weather_bg_null_safety/bg/weather_color_bg.dart';
-import 'package:flutter_weather_bg_null_safety/bg/weather_night_star_bg.dart';
-import 'package:flutter_weather_bg_null_safety/bg/weather_rain_snow_bg.dart';
-import 'package:flutter_weather_bg_null_safety/bg/weather_thunder_bg.dart';
-import 'package:flutter_weather_bg_null_safety/flutter_weather_bg.dart';
-import 'package:flutter_weather_bg_null_safety/utils/image_utils.dart';
-import 'package:flutter_weather_bg_null_safety/utils/print_utils.dart';
 import 'package:flutter_weather_bg_null_safety/utils/weather_type.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_weather_bg_null_safety/bg/weather_bg.dart';
 
 final Map<String, String> weatherCodeToLottie = {
   /*
@@ -162,15 +151,6 @@ WeatherType getWeatherBgType(String conditionText) {
   } else {
     // Fallback if no known type matches
     return WeatherType.sunny;
-  }
-}
-
-Color _getTextColor(String conditionText) {
-  final weatherType = getWeatherBgType(conditionText);
-  if (weatherType == WeatherType.sunny || weatherType == WeatherType.cloudy) {
-    return Colors.black;
-  } else {
-    return Colors.white;
   }
 }
 

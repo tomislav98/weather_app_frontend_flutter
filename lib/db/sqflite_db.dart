@@ -19,68 +19,61 @@ class DatabaseHelper {
     final path = await getDatabasesPath();
     final dbPath = join(path, 'weather.db');
 
-    return await openDatabase(dbPath, version: 1, onCreate: _onCreate);
+    return await openDatabase(dbPath, version: 2, onCreate: _onCreate);
   }
 
   void _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS cities(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        city TEXT UNIQUE
+        city TEXT NOT NULL,
+        country TEXT NOT NULL,
+        UNIQUE(city, country)
       )
     ''');
+
     // Insert default city: Vatican
-    await db.insert(
-      'cities',
-      {'city': 'Vatican'},
-      conflictAlgorithm: ConflictAlgorithm.ignore, // Just in case
-    );
+    await db.insert('cities', {
+      'city': 'Vatican City',
+      'country': 'Vatican',
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
-  Future<Map<String, dynamic>?> getCityByName(String cityName) async {
-    final db = await database; // this calls the getter to get the DB instance
+  Future<Map<String, dynamic>?> getCity(String cityName, String country) async {
+    final db = await database;
 
     final result = await db.query(
       'cities',
-      where: 'city = ?',
-      whereArgs: [cityName],
+      where: 'city = ? AND country = ?',
+      whereArgs: [cityName, country],
       limit: 1,
     );
 
-    if (result.isNotEmpty) {
-      return result.first; // returns a Map with the city's data
-    } else {
-      return null; // city not found
-    }
+    return result.isNotEmpty ? result.first : null;
   }
 
-  Future<int> insertCity(String cityName) async {
-    final db = await database; // get the database instance
-
-    return await db.insert(
-      'cities',
-      {'city': cityName},
-      conflictAlgorithm:
-          ConflictAlgorithm
-              .replace, // optional: replaces if city already exists
-    );
-  }
-
-  Future<int> deleteCityByName(String cityName) async {
-    final db = await database; // get the database instance
-
-    return await db.delete('cities', where: 'city = ?', whereArgs: [cityName]);
-  }
-
-  Future<List<String>> getAllCities() async {
+  Future<int> insertCity(String cityName, String country) async {
     final db = await database;
 
-    final List<Map<String, dynamic>> result = await db.query(
-      'cities',
-      orderBy: 'id DESC', // 👈 newest first
-    );
+    return await db.insert('cities', {
+      'city': cityName,
+      'country': country,
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+  }
 
-    // Extract just the city names into a List<String>
-    return result.map((row) => row['city'] as String).toList();
+  Future<int> deleteCity(String cityName, String country) async {
+    final db = await database;
+
+    return await db.delete(
+      'cities',
+      where: 'city = ? AND country = ?',
+      whereArgs: [cityName, country],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getAllCities() async {
+    final db = await database;
+
+    return await db.query('cities', orderBy: 'id DESC');
   }
 }

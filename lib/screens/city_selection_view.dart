@@ -3,8 +3,8 @@ import 'package:weather_app/db/sqflite_db.dart';
 import 'package:weather_app/screens/home_page_view.dart';
 import 'package:weather_app/screens/search_page_view.dart';
 import 'package:weather_app/services/weather_api.dart';
-import 'package:weather_app/utils/ui_colors.dart';
 import '../models/weather.dart' show Weather;
+import '../utils/transition_logic.dart';
 
 class CitySelectionView extends StatefulWidget {
   const CitySelectionView({super.key});
@@ -15,7 +15,7 @@ class CitySelectionView extends StatefulWidget {
 
 class _CitySelectionViewState extends State<CitySelectionView> {
   final dbHelper = DatabaseHelper();
-  List<String> _savedCities = [];
+  List<Map<String, String>> _savedCities = [];
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class _CitySelectionViewState extends State<CitySelectionView> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            _navigateWithSlideTransition(context, HomePageView());
+            navigateWithSlideTransition(context, HomePageView());
           },
         ),
       ),
@@ -38,7 +38,7 @@ class _CitySelectionViewState extends State<CitySelectionView> {
           itemBuilder: (context, index) {
             return InkWell(
               onTap: () async {
-                setMostRecentCity(_savedCities[index]);
+                setMostRecentCity(_savedCities[index]['city']!);
 
                 Navigator.pushReplacement(
                   context,
@@ -83,7 +83,10 @@ class _CitySelectionViewState extends State<CitySelectionView> {
                 onDismissed: (direction) {
                   setState(() {
                     final db = DatabaseHelper();
-                    db.deleteCityByName(_savedCities[index]);
+                    db.deleteCity(
+                      _savedCities[index]['city']!,
+                      _savedCities[index]['country']!,
+                    );
 
                     _savedCities.removeAt(index);
                   });
@@ -103,7 +106,8 @@ class _CitySelectionViewState extends State<CitySelectionView> {
                   ),
                   child: FutureBuilder(
                     future: fetchWeatherData(
-                      _savedCities[index],
+                      _savedCities[index]['city']!,
+                      _savedCities[index]['country']!,
                     ), // need to modify
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -116,19 +120,33 @@ class _CitySelectionViewState extends State<CitySelectionView> {
                       Weather weather = snapshot.data!;
                       return GestureDetector(
                         onTap: () {
-                          _navigateWithSlideTransition(context, HomePageView());
+                          navigateWithSlideTransition(context, HomePageView());
                         },
 
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              weather.locationName,
-                              style: Theme.of(context).textTheme.titleLarge,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  weather.locationName,
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                                Text(
+                                  weather.country,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                              ],
                             ),
+
                             const SizedBox(height: 8),
                             const Spacer(),
                             Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
                                   "${weather.currentTemperature}°",
@@ -161,7 +179,7 @@ class _CitySelectionViewState extends State<CitySelectionView> {
             child: GestureDetector(
               child: GestureDetector(
                 onTap: () {
-                  _navigateWithSlideTransition(context, SearchPageView());
+                  navigateWithSlideTransition(context, SearchPageView());
                 },
                 child: Column(children: [Icon(Icons.add), Text('Add City')]),
               ),
@@ -172,33 +190,18 @@ class _CitySelectionViewState extends State<CitySelectionView> {
     );
   }
 
-  void _navigateWithSlideTransition(BuildContext context, Widget page) {
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 1000),
-        pageBuilder: (context, animation, secondaryAnimation) => page,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          const curve = Curves.ease;
-          final tween = Tween(
-            begin: begin,
-            end: end,
-          ).chain(CurveTween(curve: curve));
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-      ),
-    );
-  }
-
   Future<void> initialize() async {
     final cities = await dbHelper.getAllCities();
     setState(() {
-      _savedCities = cities;
+      _savedCities =
+          cities
+              .map(
+                (row) => {
+                  'city': row['city'] as String,
+                  'country': row['country'] as String,
+                },
+              )
+              .toList();
     });
   }
 
