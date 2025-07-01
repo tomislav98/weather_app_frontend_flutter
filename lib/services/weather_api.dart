@@ -16,7 +16,7 @@ Future<void> logWeatherData(String responseBody) async {
 
 Future<Weather> fetchWeatherData(String city) async {
   //appLogger.i('Fetching weather data for $city');
-  print('This is api key $WEATHER_API_KEY');
+
   final response = await http.get(
     Uri.parse(
       'https://api.weatherapi.com/v1/forecast.json?key=$WEATHER_API_KEY&q=$city&days=3',

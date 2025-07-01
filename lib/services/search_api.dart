@@ -5,7 +5,6 @@ import 'package:weather_app/config.dart' show WEATHER_API_KEY;
 import 'package:http/http.dart' as http;
 
 Future<List<dynamic>> searchCity(String query) async {
-  print('This is api key $WEATHER_API_KEY');
   final response = await http.get(
     Uri.parse(
       'http://api.weatherapi.com/v1/search.json?key=$WEATHER_API_KEY&q=$query',
