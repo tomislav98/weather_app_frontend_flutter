@@ -18,6 +18,8 @@ class _SignInPageViewState extends State<SignInPageView> {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -61,7 +63,7 @@ class _SignInPageViewState extends State<SignInPageView> {
                   const SizedBox(height: 20),
                   TextFormField(
                     controller: emailController,
-                    decoration: _inputDecoration('Email'),
+                    decoration: _inputDecoration('Email', 'Enter your email'),
                     validator:
                         (value) =>
                             value == null || value.isEmpty
@@ -72,7 +74,10 @@ class _SignInPageViewState extends State<SignInPageView> {
                   TextFormField(
                     controller: passwordController,
                     obscureText: _obscureText,
-                    decoration: _inputDecoration('Password').copyWith(
+                    decoration: _inputDecoration(
+                      'Password',
+                      'Enter your password',
+                    ).copyWith(
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureText
@@ -138,9 +143,14 @@ class _SignInPageViewState extends State<SignInPageView> {
     );
   }
 
-  InputDecoration _inputDecoration(String label) {
+  InputDecoration _inputDecoration(String label, String hintText) {
+    final ThemeData theme = Theme.of(context);
+
     return InputDecoration(
       labelText: label,
+      labelStyle: TextStyle(color: theme.hintColor),
+      hintText: hintText,
+      hintStyle: TextStyle(color: theme.hintColor),
       contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       enabledBorder: const OutlineInputBorder(
         borderSide: BorderSide(color: Colors.grey),

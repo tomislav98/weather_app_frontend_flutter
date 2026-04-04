@@ -36,49 +36,11 @@ class _HomePageViewState extends State<HomePageView>
   final now = DateTime.now();
   final formatDate = DateFormat("hh:mm a");
 
-  // Future<void> _showGpsDisableDialog(BuildContext context) async {
-  //   bool? result = await showDialog<bool>(
-  //     context: context,
-  //     barrierDismissible: false, // User must tap a button
-  //     builder: (context) {
-  //       return AlertDialog(
-  //         title: Text('GPS is enabled'),
-  //         content: Text('Would you like to disable GPS?'),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () => Navigator.of(context).pop(false), // User says NO
-  //             child: Text('No'),
-  //           ),
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.of(context).pop(true); // User says YES
-  //             },
-  //             child: Text('Yes'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-
-  //   if (result == true) {
-  //     // User wants to disable GPS
-  //     // You can navigate them to settings or give instructions
-  //     _openLocationSettings();
-  //   }
-  // }
-
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
   }
-
-  // void _openLocationSettings() {
-  //   // Unfortunately, you cannot disable GPS programmatically for privacy reasons,
-  //   // but you can open the location settings page for the user.
-
-  //   Geolocator.openLocationSettings();
-  // }
 
   @override
   void initState() {
@@ -547,137 +509,6 @@ class _HomePageViewState extends State<HomePageView>
       ),
     );
   }
-
-  // Widget _sunsetAndSunrise(BuildContext context, Weather weather) {
-  //   final format = DateFormat("hh:mm a"); // Formato tipo "06:15 AM"
-  //   DateTime today = DateTime.now();
-
-  //   final sunriseParsed = format.parse(weather.sunrise);
-  //   final sunsetParsed = format.parse(weather.sunset);
-
-  //   final sunriseTime = DateTime(
-  //     today.year,
-  //     today.month,
-  //     today.day,
-  //     sunriseParsed.hour,
-  //     sunriseParsed.minute,
-  //   );
-
-  //   final sunsetTime = DateTime(
-  //     today.year,
-  //     today.month,
-  //     today.day,
-  //     sunsetParsed.hour,
-  //     sunsetParsed.minute,
-  //   );
-
-  //   final totalDuration = sunsetTime.difference(sunriseTime).inSeconds;
-  //   final elapsed = now
-  //       .difference(sunriseTime)
-  //       .inSeconds
-  //       .clamp(0, totalDuration);
-  //   final progress = totalDuration == 0 ? 0.0 : elapsed / totalDuration;
-  //   double maxWidth = 300; // larghezza barra
-
-  //   //double progress = 0.5; // esempio
-
-  //   return Container(
-  //     width: MediaQuery.of(context).size.width * 0.9,
-  //     height: MediaQuery.of(context).size.height * 0.1,
-  //     color: Colors.blue,
-  //     child: Column(
-  //       children: [
-  //         Row(
-  //           children: [
-  //             Text(
-  //               'Sunrise and sunset',
-  //               style: const TextStyle(
-  //                 fontFamily: 'Montserrat',
-  //                 fontSize: 20,
-  //                 fontWeight: FontWeight.bold,
-  //               ),
-  //               textAlign: TextAlign.start,
-  //             ),
-  //           ],
-  //         ),
-  //         SizedBox(height: 20),
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.center,
-  //           children: [
-  //             Stack(
-  //               clipBehavior: Clip.none,
-  //               children: [
-  //                 // Barra base
-  //                 Container(
-  //                   width: maxWidth,
-  //                   height: 1,
-  //                   decoration: BoxDecoration(
-  //                     color: Colors.grey.shade300,
-  //                     borderRadius: BorderRadius.circular(10),
-  //                   ),
-  //                 ),
-
-  //                 // Barra riempita
-  //                 Container(
-  //                   width: maxWidth * progress,
-  //                   height: 1,
-  //                   decoration: BoxDecoration(
-  //                     color: Colors.orangeAccent,
-  //                     borderRadius: BorderRadius.circular(10),
-  //                   ),
-  //                 ),
-  //                 Positioned(
-  //                   left: -24,
-  //                   top: -31,
-  //                   child: SizedBox(
-  //                     width: 48,
-  //                     height: 48,
-  //                     child: Lottie.asset(
-  //                       'assets/animations/weather-icons/lottie/sunrise.json',
-  //                     ),
-  //                   ),
-  //                 ),
-  //                 Positioned(
-  //                   left: maxWidth - 24,
-  //                   top: -31,
-  //                   child: SizedBox(
-  //                     width: 48,
-  //                     height: 48,
-  //                     child: Lottie.asset(
-  //                       'assets/animations/weather-icons/lottie/sunset.json',
-  //                     ),
-  //                   ),
-  //                 ),
-
-  //                 // Sole che si muove solo orizzontalmente
-  //                 Positioned(
-  //                   left:
-  //                       (maxWidth * progress).clamp(24.0, maxWidth - 24.0) - 24,
-  //                   top: -24,
-  //                   child: SizedBox(
-  //                     width: 48,
-  //                     height: 48,
-  //                     child: Lottie.asset(
-  //                       'assets/animations/weather-icons/lottie/clear-day.json',
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ],
-  //         ),
-  //         SizedBox(height: 5),
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //           children: [
-  //             Column(children: [Text(weather.sunrise)]),
-  //             Column(children: [Text(weather.sunset)]),
-  //           ],
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }
 
 Color _getTextColor(String conditionText) {

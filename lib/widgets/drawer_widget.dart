@@ -8,12 +8,13 @@ import '../screens/radar_page_view.dart';
 import '../screens/welcome_page_view.dart';
 
 Widget buildAppDrawer(BuildContext context) {
+  final ThemeData theme = Theme.of(context);
   final authService = AuthService();
   final user = authService.getCurrentUser;
   bool isSignedIn = authService.isSignedIn();
 
   return Drawer(
-    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    backgroundColor: theme.scaffoldBackgroundColor,
     child: Column(
       children: [
         DrawerHeader(
@@ -126,13 +127,10 @@ Widget buildAppDrawer(BuildContext context) {
         Divider(color: Colors.white, thickness: 1),
         if (isSignedIn)
           ListTile(
-            leading: Icon(Icons.logout, color: Colors.white),
+            leading: Icon(Icons.logout, color: theme.primaryIconTheme.color),
             title: Text(
               'Log Out',
-              style: TextStyle(
-                // color: Colors.redAccent,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
             onTap: () async {
               await authService.signOut();

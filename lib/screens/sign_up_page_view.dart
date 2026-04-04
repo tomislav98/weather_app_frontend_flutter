@@ -25,9 +25,19 @@ class _SignUpPageViewState extends State<SignUpPageView> {
     super.dispose();
   }
 
-  InputDecoration _buildInputDecoration(String label, {Widget? suffixIcon}) {
+  InputDecoration _buildInputDecoration(
+    String label,
+    String hintText, {
+    Widget? suffixIcon,
+  }) {
+    final ThemeData theme = Theme.of(context);
+
     return InputDecoration(
       labelText: label,
+      labelStyle: TextStyle(color: theme.hintColor),
+      hintText: hintText,
+      hintStyle: TextStyle(color: theme.hintColor),
+
       contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       enabledBorder: const OutlineInputBorder(
         borderSide: BorderSide(color: Colors.grey),
@@ -48,7 +58,7 @@ class _SignUpPageViewState extends State<SignUpPageView> {
   Widget _buildEmailField() {
     return TextFormField(
       controller: _emailController,
-      decoration: _buildInputDecoration('Email'),
+      decoration: _buildInputDecoration('Email', 'Enter your email'),
       validator:
           (value) =>
               value == null || value.isEmpty ? 'Please enter an email' : null,
@@ -61,6 +71,7 @@ class _SignUpPageViewState extends State<SignUpPageView> {
       obscureText: _obscureText,
       decoration: _buildInputDecoration(
         'Password',
+        'Enter your Password',
         suffixIcon: IconButton(
           icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
           onPressed: () => setState(() => _obscureText = !_obscureText),

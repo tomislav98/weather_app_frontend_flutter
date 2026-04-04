@@ -35,12 +35,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData.light().copyWith(
         // WHITE THEME
         scaffoldBackgroundColor: Colors.white,
+
         textTheme: TextTheme(
           titleLarge: TextStyle(
             fontFamily: 'Montserrat',
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Colors.white,
           ),
           titleMedium: TextStyle(
             fontFamily: 'Montserrat',
@@ -61,7 +62,23 @@ class MyApp extends StatelessWidget {
             color: Colors.black, // or Colors.grey.shade600
             fontWeight: FontWeight.w400,
           ),
+          labelSmall: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 11,
+            color: Colors.white60,
+            fontWeight: FontWeight.w400,
+          ),
+          bodySmall: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.lightBlueAccent, // or Colors.blue
+            decoration: TextDecoration.underline,
+          ),
         ),
+        hintColor: const Color(0xFFBDBDBD),
+
+        primaryIconTheme: const IconThemeData(color: Colors.black),
         cardColor: Colors.grey.shade200,
         colorScheme: ColorScheme.light(),
       ),
@@ -70,6 +87,8 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(
           0xFF2C3E50,
         ), // Indigo-like dark blue
+        primaryIconTheme: const IconThemeData(color: Colors.white),
+
         textTheme: const TextTheme(
           titleLarge: TextStyle(
             fontFamily: 'Montserrat',
@@ -111,6 +130,8 @@ class MyApp extends StatelessWidget {
 
           // const Color(0xFF3E4A59)
         ),
+        hintColor: const Color(0xFFBDBDBD),
+
         cardColor: const Color(0xFF3E4A59),
         colorScheme: ColorScheme.dark(onPrimary: Colors.white),
       ),
