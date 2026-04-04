@@ -15,6 +15,41 @@ class FlippableHourlyCard extends StatefulWidget {
 
 class _FlippableHourlyCardState extends State<FlippableHourlyCard> {
   bool _isFlipped = false;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // scroll after first frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToCurrentHour();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose(); // ← clean up
+    super.dispose();
+  }
+
+  void _scrollToCurrentHour() {
+    final currentHour = DateTime.now().hour;
+
+    // find index of the closest hour in the list
+    final index = widget.hour.indexWhere((h) => h.dateTime.hour >= currentHour);
+
+    if (index <= 0) return; // already at start
+
+    // each card is 80 width + 16 margin = 96
+    const cardWidth = 96.0;
+    final offset = index * cardWidth;
+
+    _scrollController.animateTo(
+      offset,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +88,7 @@ class _FlippableHourlyCardState extends State<FlippableHourlyCard> {
       height: 140,
       width: MediaQuery.of(context).size.width * 0.9,
       child: ListView.builder(
+        controller: _scrollController,
         scrollDirection: Axis.horizontal,
         itemCount: hourly.length,
         itemBuilder: (context, index) {
@@ -102,6 +138,7 @@ class _FlippableHourlyCardState extends State<FlippableHourlyCard> {
       height: 140, // Set desired height
       width: MediaQuery.of(context).size.width * 0.9,
       child: ListView.builder(
+        controller: _scrollController,
         scrollDirection: Axis.horizontal,
         itemCount: hourly.length,
         itemBuilder: (context, index) {
