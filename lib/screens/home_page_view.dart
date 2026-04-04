@@ -257,19 +257,20 @@ class _HomePageViewState extends State<HomePageView>
             // It sends commands to the TV to change the channel or volume.
             // It also receives feedback (current channel) so it can display
             //  the correct info on its screen.
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SmoothPageIndicator(
-                controller: _pageController,
-                count: _savedCities.length,
-                effect: WormEffect(
-                  dotHeight: 12,
-                  dotWidth: 12,
-                  activeDotColor: Colors.blueAccent,
-                  dotColor: Colors.grey.shade300,
+            if (_savedCities.length > 1)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SmoothPageIndicator(
+                  controller: _pageController,
+                  count: _savedCities.length,
+                  effect: WormEffect(
+                    dotHeight: 12,
+                    dotWidth: 12,
+                    activeDotColor: Colors.blueAccent,
+                    dotColor: Colors.grey.shade300,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
