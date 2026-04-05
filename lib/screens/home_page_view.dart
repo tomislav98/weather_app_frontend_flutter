@@ -116,9 +116,6 @@ class _HomePageViewState extends State<HomePageView>
                       onTap: () {
                         // Open drawer if signed up
                         Scaffold.of(context).openDrawer();
-
-                        // Show signup dialog
-                        //_dialogBuilder(context);
                       },
                       child: CircleAvatar(
                         backgroundColor: Color(0xffE6E6E6),
@@ -309,15 +306,6 @@ class _HomePageViewState extends State<HomePageView>
               height: 200,
             ),
 
-            // Positioned(
-            //   top: -40,
-            //   left: 20,
-            //   child: Lottie.asset(
-            //     getWeatherIconForCode(weather.conditionText),
-            //     width: 150,
-            //     height: 150,
-            //   ),
-            // ),
             Positioned(
               bottom: 30,
               left: 20,

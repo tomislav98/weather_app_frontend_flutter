@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:weather_app/screens/alert_system_view.dart';
 import '../services/auth_service.dart';
 import '../services/alert_api.dart';
 import '../screens/city_selection_view.dart';
@@ -102,9 +103,10 @@ Widget buildAppDrawer(BuildContext context) {
                 title: const Text('Set Alert system'),
                 onTap:
                     user != null
-                        ? () async {
-                          await callNotifyApi();
-                        }
+                        ? () => navigateWithSlideTransition(
+                          context,
+                          const AlertSystemView(),
+                        )
                         : null,
                 enabled: user != null,
               ),

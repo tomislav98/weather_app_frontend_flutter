@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
             fontFamily: 'Montserrat',
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: Colors.black,
           ),
           titleMedium: TextStyle(
             fontFamily: 'Montserrat',
@@ -76,11 +76,34 @@ class MyApp extends StatelessWidget {
             decoration: TextDecoration.underline,
           ),
         ),
-        hintColor: const Color(0xFFBDBDBD),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue, // ← button background
+            foregroundColor: Colors.white, // ← text color
+            minimumSize: Size(double.infinity, 50), // ← full width
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            textStyle: TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        hintColor: const Color(0xFF000000),
+        inputDecorationTheme: InputDecorationTheme(
+          labelStyle: TextStyle(color: Colors.black),
+          hintStyle: TextStyle(color: Colors.black54),
+          border: OutlineInputBorder(),
+        ),
 
         primaryIconTheme: const IconThemeData(color: Colors.black),
         cardColor: Colors.grey.shade200,
-        colorScheme: ColorScheme.light(),
+        colorScheme: ColorScheme.light(
+          onSurface: Colors.black, // ← typed text color
+          primary: Colors.blue, // ← focused border color
+        ),
       ),
       darkTheme: ThemeData.dark().copyWith(
         // DARK THEME
@@ -130,6 +153,23 @@ class MyApp extends StatelessWidget {
 
           // const Color(0xFF3E4A59)
         ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor:
+                Colors.blueAccent, // ← slightly lighter for dark mode
+            foregroundColor: Colors.white,
+            minimumSize: Size(double.infinity, 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            textStyle: TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+
         hintColor: const Color(0xFFBDBDBD),
 
         cardColor: const Color(0xFF3E4A59),
